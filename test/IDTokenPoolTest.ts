@@ -4,10 +4,12 @@ import { ethers } from "hardhat";
 import { contracts } from "../typechain-types";
 import { IDTTokenPool,IDTToken} from "../typechain-types";
 describe("IDTokenPool", function () {
-  let idtToken: IDTToken, idtTokenPool: IDTTokenPool, owner: any;
+  let idtToken: IDTToken;
+  let idtTokenPool: IDTTokenPool;
+  let owner: any;
 
-  const IDT_AMOUNT = 5;
-  const LOCK_TIME = 3;
+  const IDT_AMOUNT = 5;// The amount of ID tokens required for NFT
+  const LOCK_TIME = 3;// Minimum amount of time to lock tokens
 
   beforeEach(async function () {
     // Mint IDT tokens to test addresses
