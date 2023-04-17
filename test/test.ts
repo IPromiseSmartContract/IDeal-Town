@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 import { contracts } from "../typechain-types";
 
 describe("IDTokenPool", function () {
-  let idtToken, idtTokenPool: any, owner: any;
+  let idtToken: any, idtTokenPool: any, owner: any;
 
   const IDT_AMOUNT = 5;
   const LOCK_TIME = 3;
@@ -43,6 +43,47 @@ describe("IDTokenPool", function () {
 
     // Check that tokens are unlocked
     expect(await idtTokenPool.isLocked(owner.address)).to.equal(false);
+  });
+
+  it("Should check balance after locking and unlocking IDT tokens", async function () {
+    // Get the initial balances
+    const sender = owner.address;
+    const initialBalance = await idtToken.balanceOf(sender);
+  
+    // Lock tokens
+    const amount = IDT_AMOUNT;
+    await idtTokenPool.lockTokens(amount);
+  
+    // Check that tokens are locked
+    expect(await idtTokenPool.isLocked(sender)).to.equal(true);
+  
+    // Check lockAmount
+    const lockAmount = await idtTokenPool.lockAmount(sender);
+    expect(lockAmount).to.equal(amount);
+  
+    // Check IDT token balances
+    const senderBalance = await idtToken.balanceOf(sender);
+    const poolBalance = await idtToken.balanceOf(idtTokenPool.address);
+  
+    expect(senderBalance).to.equal(initialBalance.sub(amount));
+    expect(poolBalance).to.equal(amount);
+  
+    // Wait for lock time to pass
+    await ethers.provider.send("evm_increaseTime", [LOCK_TIME]);
+    await ethers.provider.send("evm_mine",[]);
+  
+    // Unlock tokens
+    await idtTokenPool.unlockTokens();
+  
+    // Check that tokens are unlocked
+    expect(await idtTokenPool.isLocked(sender)).to.equal(false);
+  
+    // Check IDT token balances again
+    const senderBalance2 = await idtToken.balanceOf(sender);
+    const poolBalance2 = await idtToken.balanceOf(idtTokenPool.address);
+  
+    expect(senderBalance2).to.equal(initialBalance);
+    expect(poolBalance2).to.equal(0);
   });
 
   it("Should revert when unlocking tokens before locking", async function () {
