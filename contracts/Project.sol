@@ -3,6 +3,11 @@ pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+interface Token {
+    function mint(address account, uint256 amount) external;
+    function burn(address account, uint256 amount) external;
+}
+
 contract Project {
     string public name;
     address public owner;
@@ -16,6 +21,14 @@ contract Project {
         expiration = _expiration;
         threshold = _threshold;
         token = _token;
+    }
+
+    function mintToken(uint256 amount) public{
+        Token(token).mint(msg.sender, amount);
+    }
+
+    function burnToken(uint256 amount) public{
+        Token(token).burn(msg.sender, amount);
     }
 }
 
