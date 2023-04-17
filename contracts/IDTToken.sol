@@ -8,8 +8,8 @@ contract IDTToken is ERC20, Ownable {
     uint _premint_amount;
 
     constructor(uint _amount) ERC20("IDealTown", "IDT") {
-        _premint_amount = _amount;
-        _mint(msg.sender, _amount * 10 ** decimals());
+        _premint_amount = _amount; // use constructor to determine the premint amount
+        _mint(msg.sender, _amount * 10 ** decimals()); // premint some tokens
     }
 
     function mint(address to, uint256 amount) public onlyOwner {
