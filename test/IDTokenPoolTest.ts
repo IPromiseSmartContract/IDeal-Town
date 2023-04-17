@@ -2,9 +2,9 @@ import { expect } from "chai";
 import { Address } from "cluster";
 import { ethers } from "hardhat";
 import { contracts } from "../typechain-types";
-
+import { IDTTokenPool,IDTToken} from "../typechain-types";
 describe("IDTokenPool", function () {
-  let idtToken: any, idtTokenPool: any, owner: any;
+  let idtToken: IDTToken, idtTokenPool: IDTTokenPool, owner: any;
 
   const IDT_AMOUNT = 5;
   const LOCK_TIME = 3;
