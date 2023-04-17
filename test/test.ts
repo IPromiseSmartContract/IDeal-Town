@@ -4,14 +4,14 @@ import { ethers } from "hardhat";
 import { contracts } from "../typechain-types";
 
 describe("IDTokenPool", function () {
-  let idtToken, idtTokenPool: any, owner: any, addr1, addr2;
+  let idtToken, idtTokenPool: any, owner: any;
 
   const IDT_AMOUNT = 5;
   const LOCK_TIME = 3;
 
   beforeEach(async function () {
     // Mint IDT tokens to test addresses
-    [owner, addr1] = await ethers.getSigners();
+    [owner] = await ethers.getSigners();
 
     // Deploy IDTToken contract
     const IDTToken = await ethers.getContractFactory("IDTToken");
