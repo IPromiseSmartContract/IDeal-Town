@@ -32,7 +32,7 @@ onMounted(async () => {
 })
 const activeProjects = computed(() => {
   // Filter projects by status
-  return projects.filter((project) => project.status !== 'ina1ctive')
+  return projects.filter((project) => project.status !== 'inactive')
 })
 
 const getStatusStyle = (status: string) => {
@@ -63,23 +63,15 @@ const goToProjectListView = () => {
 
 <template>
   <div class="section">
-    <div
-      class="flex justify-content-center card-container pt-5 text-5xl font-bold scalein animation-duration-1000"
-    >
+    <div class="flex justify-content-center card-container pt-5 text-5xl font-bold scalein animation-duration-1000">
       Deal it, and own it
     </div>
-    <div
-      class="flex justify-content-center card-container py-5 text-xl scalein animation-duration-1000"
-    >
+    <div class="flex justify-content-center card-container py-5 text-xl scalein animation-duration-1000">
       Ideal town make idea come true
     </div>
     <div class="flex justify-content-center card-container gap-4 mt-6">
-      <Button
-        icon="pi pi-check"
-        label="Join"
-        style="background-color: #eebc63; border: 0; color: #000"
-        @click="(e:Event)=>goToProjectListView()"
-      />
+      <Button icon="pi pi-check" label="Join" style="background-color: #eebc63; border: 0; color: #000"
+        @click="(e: Event) => goToProjectListView()" />
       <Button icon="pi pi-times" label="More" style="background-color: rgba(70, 58, 58, 0.8)" />
       <LoginBtn></LoginBtn>
     </div>
