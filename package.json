@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@blocto/sdk": "^0.4.1",
+    "@vavt/md-editor-extension": "^2.0.0",
+    "md-editor-v3": "^2.11.2",
     "pinia": "^2.0.32",
     "primeflex": "^3.3.0",
     "primeicons": "^6.0.1",
@@ -23,6 +25,7 @@
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.2.0",
+    "@types/marked": "^4.0.8",
     "@types/node": "^18.14.2",
     "@vitejs/plugin-vue": "^4.0.0",
     "@vue/eslint-config-prettier": "^7.1.0",
