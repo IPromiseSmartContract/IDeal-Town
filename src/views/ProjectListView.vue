@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import Card from 'primevue/card'
 import Button from 'primevue/button'
+import SpeedDial from 'primevue/speeddial'
 
 import { computed, reactive, ref, onMounted } from 'vue'
 import Tag from 'primevue/tag'
+import { useToast } from 'primevue/usetoast'
 import { useRouter } from 'vue-router'
+
+const toast = useToast()
 const router = useRouter()
 
 interface IProject {
@@ -55,6 +59,24 @@ const getStatusStyle = (status: string) => {
 const goToProjectView = (project: IProject) => {
   router.push(`/project/${project.address}`)
 }
+
+const items = ref([
+  {
+    label: 'Add',
+    icon: 'pi pi-pencil',
+    command: () => {
+      toast.add({ severity: 'info', summary: 'Add', detail: 'Data Added', life: 5000 })
+      router.push(`/create-project`)
+    }
+  },
+  {
+    label: 'Update',
+    icon: 'pi pi-refresh',
+    command: () => {
+      toast.add({ severity: 'success', summary: 'Update', detail: 'Data Updated', life: 5000 })
+    }
+  }
+])
 </script>
 
 <template>
@@ -98,5 +120,15 @@ const goToProjectView = (project: IProject) => {
       </div>
     </div>
   </main>
+  <div
+    :style="{
+      position: 'sticky',
+      bottom: '15vh',
+      height: '10px',
+      left: '20px'
+    }"
+  >
+    <SpeedDial :model="items" direction="up" class="z-5" buttonClass="p-button-warning" />
+  </div>
 </template>
 <style scoped></style>

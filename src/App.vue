@@ -4,6 +4,7 @@ import NavBar from '@/components/NavBar.vue'
 import Message from 'primevue/message'
 import type { MessageProps } from 'primevue/message'
 import { ref } from 'vue'
+import Toast from 'primevue/toast'
 
 const messages = ref([
   { severity: 'info', content: 'Dynamic Info Message' },
@@ -19,14 +20,7 @@ interface IMessage extends MessageProps {
   <header>
     <NavBar></NavBar>
     <transition-group name="p-message" tag="div" class="p-message-container">
-      <Message
-        v-for="(msg, idx) of messages"
-        :key="idx"
-        :severity="msg.severity"
-        :sticky="false"
-        :life="5000"
-        >{{ msg.content }}</Message
-      >
+      <Toast style="transform: translateY(70px); /* 等同于 translate(10px) */" />
     </transition-group>
   </header>
   <main>
