@@ -18,7 +18,7 @@ contract IDTTokenPool is Ownable {
     }
     
     // Lock IDT tokens 
-    function lockTokens(uint amount) external onlyOwner{
+    function lockTokens(uint amount) external {
         require(isLocked[msg.sender] == false, "Tokens already locked"); 
         require(IERC20(idtAddress).balanceOf(msg.sender) >= amount, "Insufficient IDT tokens");
         require(amount >= idtAmount, "Not enough IDT tokens to lock");
