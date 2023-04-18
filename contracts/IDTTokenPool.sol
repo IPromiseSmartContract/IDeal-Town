@@ -3,6 +3,7 @@
 pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+// After reviewing, reviewers can lock thier rewards(IDT Tokens) to this pool. After lockTime pass , they can unlock rewards.
 contract IDTTokenPool is Ownable {
     address public idtAddress; 
     uint256 public idtAmount ; // The amount of ID tokens to lock
@@ -17,7 +18,7 @@ contract IDTTokenPool is Ownable {
         lockTime = _lockTime; //Unit of lockTime is seconds
     }
     
-    // Lock IDT tokens 
+    // Lock IDT tokens that are going to give to reviewers 
     function lockTokens(uint amount) external {
         require(isLocked[msg.sender] == false, "Tokens already locked"); 
         require(IERC20(idtAddress).balanceOf(msg.sender) >= amount, "Insufficient IDT tokens");
@@ -28,7 +29,7 @@ contract IDTTokenPool is Ownable {
         isLocked[msg.sender] = true;
     }
     
-    // Allow users to unlock their ID tokens
+    // Allow reviewers to unlock their ID tokens
     function unlockTokens() external {
         require(isLocked[msg.sender], "Tokens not locked");
         require(lockRecord[msg.sender] + lockTime <= block.timestamp, "Lock time not expired");
