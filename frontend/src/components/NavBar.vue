@@ -3,10 +3,13 @@ import Button from 'primevue/button'
 import Menubar from 'primevue/menubar'
 import { ref } from 'vue'
 import LogoSvg from '@/components/LogoSvg.vue'
+import { useRouter } from 'vue-router'
+const router = useRouter()
 const items = ref([
   {
     label: 'Idea',
-    icon: 'pi pi-fw pi-pencil'
+    icon: 'pi pi-fw pi-pencil',
+    command: () => {}
     // items: []
   },
   {
@@ -16,24 +19,49 @@ const items = ref([
   {
     label: 'Doc',
     icon: 'pi pi-fw pi-file'
+  },
+  {
+    label: 'Govern',
+    icon: 'pi pi-fw pi-building',
+    items: [
+      {
+        label: 'Proposal',
+        icon: 'pi pi-fw pi-file-edit',
+        command: () => {
+          router.push('/dao/proposal')
+        }
+      }
+    ]
   }
 ])
 </script>
 
 <template>
-  <Menubar :model="items" class="gap-4 navbar"
-    style="background-color: inherit; padding: 20px 10px 20px 10px; font-family: 'Allerta Stencil'">
+  <Menubar
+    :model="items"
+    class="gap-4 navbar"
+    style="background-color: inherit; padding: 20px 10px 20px 10px; font-family: 'Allerta Stencil'"
+  >
     <template #start>
-      <LogoSvg :width="40" :height="40" alt="logo" />
+      <LogoSvg
+        style="cursor: pointer"
+        :width="40"
+        :height="40"
+        alt="logo"
+        @click="router.push('/')"
+      />
     </template>
     <template #end>
-      <Button style="
-          background-color: black;
+      <Button
+        style="
+          background-color: rgba(70, 58, 58, 1);
           border: 0;
-          font-weight: 700;
+          font-weight: 500;
           color: #eebc63;
           font-family: 'Allerta Stencil';
-        ">Connect Wallet</Button>
+        "
+        >Connect Wallet</Button
+      >
     </template>
   </Menubar>
 </template>

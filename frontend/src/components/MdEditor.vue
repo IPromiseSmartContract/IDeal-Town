@@ -52,7 +52,7 @@ const toolbars: ToolbarNames[] = [
     :toolbars="toolbars"
     codeTheme="atom"
     :autoDetectCode="true"
-    style="background-color: transparent; border: 2px solid; min-height: 60vh"
+    style="background-color: transparent; border: 2px solid; min-height: 80vh"
   />
 </template>
 <style scoped></style>

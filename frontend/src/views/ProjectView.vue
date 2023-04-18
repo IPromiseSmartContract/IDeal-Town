@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import Button from 'primevue/button'
 import { computed } from 'vue'
 import Card from 'primevue/card'
 import Timeline from 'primevue/timeline'

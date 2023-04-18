@@ -2,7 +2,10 @@
 import { ref } from 'vue'
 import MdEditor from '@/components/MdEditor.vue'
 import Button from 'primevue/button'
-import { uploadToIPFS, storeOnContract } from '@/utils/ipfs'
+import { uploadToIPFS } from '@/utils/ipfs'
+import { useToast } from 'primevue/usetoast'
+import router from '@/router'
+const toast = useToast()
 const text = ref(`
 # Proposal
 
@@ -25,13 +28,15 @@ The project aims to create a comprehensive software platform that can be used to
 - Automated data backups and disaster recovery
 - Advanced security features, including data encryption and user authentication
 `)
+
 /**
  * Stores the given URL on a DAO contract.
  * @param url The URL to store on the DAO contract.
  * @returns A Promise that resolves when the URL has been stored on the DAO contract.
  */
-const storeOnContract = (url: string): Promise<any> => {
-  // TODO: Implementation details for storing the URL on a DAO contract go here
+const storeOnDAOContract = (url: string): Promise<any> => {
+  //TODO: Implementation details for storing the URL on a DAO contract go here @skyline9981
+  return Promise.resolve()
 }
 
 /**
@@ -44,22 +49,51 @@ const handlePublish = (text: string, afterUploadHook: (url: string) => Promise<a
   uploadToIPFS(text)
     .then((url: string) => {
       // Log the uploaded URL to the console
-      console.log(`File uploaded: ${url} (url)`)
+      toast.add({
+        severity: 'info',
+        summary: 'Success',
+        detail: `File uploaded: ${url} (url)`,
+        life: 5000
+      })
 
       afterUploadHook(url).catch((error: Error) => {
         // Handle any errors that occur when storing the URL on a smart contract
         console.error('Error storing file on chain:', error)
+        toast.add({
+          severity: 'error',
+          summary: 'Failed',
+          detail: `Error storing file on chain: ${error}`,
+          life: 5000
+        })
       })
     })
     .catch((error: Error) => {
       // Handle any errors that occur when uploading the text content to IPFS
-      console.error('Error uploading file:', error)
+      toast.add({
+        severity: 'error',
+        summary: 'Failed',
+        detail: `Error uploading file: ${error}`,
+        life: 5000
+      })
     })
 }
 </script>
 
 <template>
   <MdEditor v-model="text"></MdEditor>
-  <Button @click="handlePublish(text)">Publish to IPFS</Button>
+  <div class="flex justify-content-center py-6 gap-6">
+    <Button
+      text
+      class="btn shadow-3 text-black-alpha-90 bg-yellow-300 text-l hover:bg-yellow-900 hover:text-yellow-300"
+      @click="handlePublish(text, storeOnDAOContract)"
+      >Publish</Button
+    >
+    <Button
+      text
+      class="btn shadow-3 text-black-alpha-90 hover:surface-700 text-l surface-500 hover:text-50"
+      @click="router.push('/')"
+      >Cancel</Button
+    >
+  </div>
 </template>
 <style scoped></style>

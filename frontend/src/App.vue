@@ -1,19 +1,7 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
 import NavBar from '@/components/NavBar.vue'
-import Message from 'primevue/message'
-import type { MessageProps } from 'primevue/message'
-import { ref } from 'vue'
 import Toast from 'primevue/toast'
-
-const messages = ref([
-  { severity: 'info', content: 'Dynamic Info Message' },
-  { severity: 'success', content: 'Dynamic Success Message' },
-  { severity: 'warn', content: 'Dynamic Warning Message' }
-] as IMessage[])
-interface IMessage extends MessageProps {
-  content: string
-}
 </script>
 
 <template>
