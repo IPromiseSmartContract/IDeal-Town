@@ -12,12 +12,14 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@blocto/sdk": "^0.4.1",
     "pinia": "^2.0.32",
     "primeflex": "^3.3.0",
     "primeicons": "^6.0.1",
     "primevue": "^3.26.1",
     "vue": "^3.2.47",
-    "vue-router": "^4.1.6"
+    "vue-router": "^4.1.6",
+    "web3": "^1.9.0"
   },
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.2.0",

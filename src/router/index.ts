@@ -20,7 +20,7 @@ const router = createRouter({
       path: '/project/:address',
       name: 'project',
       component: ProjectView
-    }
+    },
   ]
 })
 

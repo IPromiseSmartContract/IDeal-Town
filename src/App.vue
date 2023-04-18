@@ -4,6 +4,7 @@ import NavBar from '@/components/NavBar.vue'
 import Message from 'primevue/message'
 import type { MessageProps } from 'primevue/message'
 import { ref } from 'vue'
+
 const messages = ref([
   { severity: 'info', content: 'Dynamic Info Message' },
   { severity: 'success', content: 'Dynamic Success Message' },

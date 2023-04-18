@@ -5,6 +5,7 @@ import Button from 'primevue/button'
 import { computed, reactive, ref, onMounted } from 'vue'
 import Tag from 'primevue/tag'
 import { useRouter } from 'vue-router'
+import LoginBtn from '@/components/LoginBtn.vue'
 const router = useRouter()
 
 interface IProject {
@@ -80,6 +81,7 @@ const goToProjectListView = () => {
         @click="(e:Event)=>goToProjectListView()"
       />
       <Button icon="pi pi-times" label="More" style="background-color: rgba(70, 58, 58, 0.8)" />
+      <LoginBtn></LoginBtn>
     </div>
   </div>
 </template>
