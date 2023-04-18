@@ -21,25 +21,19 @@ const items = ref([
 </script>
 
 <template>
-  <Menubar
-    :model="items"
-    class="gap-4 navbar"
-    style="background-color: inherit; padding: 20px 10px 20px 10px; font-family: 'Allerta Stencil'"
-  >
+  <Menubar :model="items" class="gap-4 navbar"
+    style="background-color: inherit; padding: 20px 10px 20px 10px; font-family: 'Allerta Stencil'">
     <template #start>
-      <LogoSvg :width="40" :height="40" />
+      <LogoSvg :width="40" :height="40" alt="logo" />
     </template>
     <template #end>
-      <Button
-        style="
+      <Button style="
           background-color: black;
           border: 0;
           font-weight: 700;
           color: #eebc63;
           font-family: 'Allerta Stencil';
-        "
-        >Connect Wallet</Button
-      >
+        ">Connect Wallet</Button>
     </template>
   </Menubar>
 </template>
@@ -47,6 +41,7 @@ const items = ref([
 :deep(.p-menubar-end) {
   margin-left: 2px;
 }
+
 .navbar {
   border: 0px;
   border-radius: 0px;
@@ -56,6 +51,7 @@ const items = ref([
   flex-direction: row;
   justify-content: space-between;
 }
+
 :deep(.p-menubar-root-list) {
   display: flex;
   align-items: center;
