@@ -143,15 +143,15 @@ contract Project {
     // emit Voted event if the proposal is accepted
     function voteForSolution(
         uint256 proposalId,
-        uint8 percnet
+        uint8 percent
     ) external onlyProposer requireStage(Stages.Vote) {
         require(
-            cumulatedPercentage + percnet > 100,
+            cumulatedPercentage + percent > 100,
             "Project: The percentage is over 100"
         );
-        votes[proposalId] += percnet; // Add the votes from the Proposer to the proposalId.
+        votes[proposalId] += percent; // Add the votes from the Proposer to the proposalId.
         rewardProposal.push(proposalId); // Store the rewarded proposalId
-        cumulatedPercentage += percnet;
+        cumulatedPercentage += percent;
         emit Voted(msg.sender, proposalId);
     }
 
