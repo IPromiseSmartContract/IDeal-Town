@@ -74,6 +74,8 @@ contract Project {
         IDTToken _idt,
         Unirep _unirep
     ) {
+        idt = _idt;
+
         unirep = _unirep;
         name = _name;
         proposer = _proposer;
