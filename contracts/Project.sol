@@ -5,6 +5,7 @@ import {Unirep} from "@unirep/contracts/Unirep.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "./IPJToken.sol";
+import "./IDTToken.sol";
 
 interface IToken {
     function mint(address account, uint256 amount) external;
@@ -25,6 +26,8 @@ contract Project {
         address author; // author of this proposal
         string url; // url of the proposal
     }
+
+    IDTToken public idt;
 
     Unirep public unirep;
     uint48 internal constant epochLength = 100;
@@ -68,10 +71,10 @@ contract Project {
         uint256 _threshold,
         IPJToken _ipjtoken,
         string memory _proposalURL,
+        IDTToken _idt,
         Unirep _unirep
     ) {
         unirep = _unirep;
-        unirep.attesterSignUp(epochLength);
         name = _name;
         proposer = _proposer;
         expiration = _expiration;
@@ -80,15 +83,13 @@ contract Project {
         currentStage = Stages.Open;
 
         ipjtoken.initialize(address(this));
+        unirep.attesterSignUp(epochLength);
         submitURL(_proposer, _proposalURL);
     }
 
-    function mintToken(uint256 amount) public {
+    function invest(uint256 amount) public {
+        idt.transferFrom(msg.sender, address(this), amount);
         ipjtoken.mint(msg.sender, amount);
-    }
-
-    function burnToken(uint256 amount) public {
-        ipjtoken.burn(msg.sender, amount);
     }
 
     function getTokenAddress() public view returns (address) {

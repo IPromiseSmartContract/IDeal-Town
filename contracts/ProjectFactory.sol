@@ -2,17 +2,20 @@
 pragma solidity ^0.8.17;
 
 import "./Project.sol";
+import "./IDTToken.sol";
 import {Unirep} from "@unirep/contracts/Unirep.sol";
 
 contract ProjectFactory {
     address[] public ProjectAddress;
     Unirep public unirep;
+    IDTToken public idt;
     uint256 internal _count;
 
     // count for project number.
-    constructor(address _addr) {
+    constructor(address _unirepAddr, address _idtAddr) {
         _count = 0;
-        unirep = Unirep(_addr);
+        unirep = Unirep(_unirepAddr);
+        idt = IDTToken(_idtAddr);
     }
 
     function createProject(
@@ -37,6 +40,7 @@ contract ProjectFactory {
             threshold,
             token,
             proposalURL,
+            idt,
             unirep
         );
         ProjectAddress.push(address(project));
