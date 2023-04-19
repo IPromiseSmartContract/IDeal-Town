@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.17;
 
+import {Unirep} from "@unirep/contracts/Unirep.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "./IPJToken.sol";
@@ -25,6 +26,9 @@ contract Project {
         string url; // url of the proposal
     }
 
+    Unirep public unirep;
+    uint48 internal constant epochLength = 100;
+
     string public name;
     address public proposer;
     uint256 public expiration;
@@ -33,6 +37,8 @@ contract Project {
     uint256 public totalProposals;
     Stages public currentStage;
 
+    mapping(address => bool) public developers;
+    mapping(address => bool) public reviewers;
     mapping(address => Proposal) public proposals;
     mapping(address => uint256) public votes;
 
@@ -60,8 +66,11 @@ contract Project {
         uint256 _threshold,
         uint256 _count,
         uint256 _amount,
-        string memory proposalURL
+        string memory _proposalURL,
+        Unirep _unirep
     ) {
+        unirep = _unirep;
+        unirep.attesterSignUp(epochLength);
         IPJToken Token = new IPJToken(
             string.concat("IPJName#", Strings.toString(_count)),
             string.concat("IPJSymbol#", Strings.toString(_count)),
@@ -73,8 +82,7 @@ contract Project {
         threshold = _threshold;
         tokenAddress = address(Token);
         currentStage = Stages.Open;
-
-        submitURL(_proposer, proposalURL);
+        submitURL(_proposer, _proposalURL);
     }
 
     function mintToken(uint256 amount) public {
@@ -97,13 +105,28 @@ contract Project {
     // 2: Review
     // 3: Reward
     // 4: Closed
-    function setCurrentStage(uint _stage) public {
+    function setCurrentStage(uint8 _stage) public {
         currentStage = Stages(_stage);
     }
 
-    // TODO: register as a proposer or developer
-    // @ Alan
-    function register() external {}
+    // register as a developer of this project
+    // one should submit a prove of their reputation is higher than threshold
+    // if the prove is invalid, the transaction will be reverted
+    function registerDeveloper(
+        uint256[] memory publicSignals,
+        uint256[8] memory proof
+    ) public {
+        require(!developers[msg.sender], "Developer already registered.");
+        developers[msg.sender] = true;
+        unirep.verifyReputationProof(publicSignals, proof);
+    }
+
+    function userStateTransition(
+        uint256[] calldata publicSignals,
+        uint256[8] calldata proof
+    ) public {
+        unirep.userStateTransition(publicSignals, proof);
+    }
 
     // TODO: receive file url from proposer's proposal and developer's solution
     // You should increase the total proposal count, push the url to the proposals mapping and emit URLSubmitted event
@@ -125,7 +148,14 @@ contract Project {
     // TODO: reviewers review the solution and send reputation by unirep
     // You should emit Reviewed event if the solution is accepted
     // @ Alan
-    function review() external requireStage(Stages.Review) {}
+    function review(
+        uint256 epochKey,
+        uint48 targetEpoch,
+        uint256 fieldIndex,
+        uint256 val
+    ) external requireStage(Stages.Review) {
+        unirep.attest(epochKey, targetEpoch, fieldIndex, val);
+    }
 
     // TODO: claim reward after the project is expired
     // You should emit RewardClaimed event

@@ -2,14 +2,17 @@
 pragma solidity ^0.8.17;
 
 import "./Project.sol";
+import {Unirep} from "@unirep/contracts/Unirep.sol";
 
 contract ProjectFactory {
     address[] public ProjectAddress;
-    uint256 _count;
+    Unirep public unirep;
+    uint256 internal _count;
 
     // count for project number.
-    constructor() {
+    constructor(address _addr) {
         _count = 0;
+        unirep = Unirep(_addr);
     }
 
     function createProject(
@@ -27,7 +30,8 @@ contract ProjectFactory {
             threshold,
             _count,
             amount,
-            proposalURL
+            proposalURL,
+            unirep
         );
         ProjectAddress.push(address(project));
 
