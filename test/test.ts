@@ -20,7 +20,7 @@ describe("ProjectFactory", () => {
     const projectAddress = await projectFactory.ProjectAddress(0);
     project = await ethers.getContractAt("Project", projectAddress) as Project;
     // step 2-2. Get deploy IPJToken contract.
-    const tokenAddress = await projectFactory.TokenAddress(0);
+    const tokenAddress = await project.getTokenAddress();
     token = await ethers.getContractAt("IPJToken", tokenAddress) as IPJToken;
   });
 
@@ -33,21 +33,11 @@ describe("ProjectFactory", () => {
   // step 4. Check can only call mint and burn by Project contract.
   it("should throw an error when calling mint function without Project contract", async () => {
     const [user] = await ethers.getSigners();
-    try {
-      await token.connect(user).mint(user.address, 100);
-    } catch (error) {
-      return;
-    }
-    throw new Error("Expected an error but none was thrown.");
+    await expect(token.connect(user).mint(user.address, 100)).to.be.rejectedWith(Error);
   });  
   it("should throw an error when calling burn function without Project contract", async () => {
     const [user] = await ethers.getSigners();
-    try {
-      await token.connect(user).burn(user.address, 100);
-    } catch (error) {
-      return;
-    }
-    throw new Error("Expected an error but none was thrown.");
+    await expect(token.connect(user).burn(user.address, 100)).to.be.rejectedWith(Error);
   });  
 
   // step 5. Mint token by user and check user balance and totalSupply.
