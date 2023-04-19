@@ -22,7 +22,7 @@ contract Project {
     }
 
     struct Proposal {
-        uint256 index; // index of this proposal
+        address authur; // arthur of this proposal
         string url; // url of the proposal
     }
 
@@ -36,12 +36,12 @@ contract Project {
     address public tokenAddress;
     uint256 public totalProposals;
     Stages public currentStage;
-
     mapping(address => bool) public developers;
     mapping(address => bool) public reviewers;
-    mapping(address => Proposal) public proposals;
-    mapping(address => uint256) public votes;
-
+    Proposal[] public proposals;
+    uint[] public rewardProposal; // Store the rewarded proposalId
+    mapping(uint256 => uint256) public votes; // Store every proposalId's number of votes
+    mapping(uint256 => bool) public isReward;
     modifier onlyProposer() {
         require(
             msg.sender == proposer,
@@ -64,23 +64,17 @@ contract Project {
         address _proposer,
         uint256 _expiration,
         uint256 _threshold,
-        uint256 _count,
-        uint256 _amount,
+        address _ipjaddr,
         string memory _proposalURL,
         Unirep _unirep
     ) {
         unirep = _unirep;
         unirep.attesterSignUp(epochLength);
-        IPJToken Token = new IPJToken(
-            string.concat("IPJName#", Strings.toString(_count)),
-            string.concat("IPJSymbol#", Strings.toString(_count)),
-            _amount
-        );
         name = _name;
         proposer = _proposer;
         expiration = _expiration;
         threshold = _threshold;
-        tokenAddress = address(Token);
+        tokenAddress = _ipjaddr;
         currentStage = Stages.Open;
         submitURL(_proposer, _proposalURL);
     }
@@ -132,18 +126,24 @@ contract Project {
     // You should increase the total proposal count, push the url to the proposals mapping and emit URLSubmitted event
     // @ Maxie
     function submitURL(
-        address sender,
+        address developer,
         string memory url
-    ) public requireStage(Stages.Open) {}
+    ) public requireStage(Stages.Open) {
+        proposals.push(Proposal(developer, url));
+        emit URLSubmitted(developer, url);
+    }
 
     // TODO: proposer vote for their favorite solution(s)
     // You should emit Voted event if the proposal is accepted
     // @ Maxie
-    function voteForSolution()
-        external
-        onlyProposer
-        requireStage(Stages.Vote)
-    {}
+    function voteForSolution(
+        uint256 proposalId,
+        uint256 percnet
+    ) external onlyProposer requireStage(Stages.Vote) {
+        votes[proposalId] += percnet; // Add the votes from the Proposer to the proposalId.
+        rewardProposal.push(proposalId); // Store the rewarded proposalId
+        emit Voted(msg.sender, proposalId);
+    }
 
     // TODO: reviewers review the solution and send reputation by unirep
     // You should emit Reviewed event if the solution is accepted
@@ -160,5 +160,25 @@ contract Project {
     // TODO: claim reward after the project is expired
     // You should emit RewardClaimed event
     // @ Maxie
-    function claimReward() external requireStage(Stages.Reward) {}
+    function claimReward() external requireStage(Stages.Reward) {
+        for (uint256 i = 0; i < rewardProposal.length; i++) {
+            uint256 rewardProposalId = rewardProposal[i];
+            if (!isReward[rewardProposalId]) {
+                Proposal memory proposalStruct = proposals[rewardProposalId];
+                address payable developerAddress = payable(
+                    proposalStruct.authur
+                );
+                uint256 rewardAmount = votes[rewardProposalId] / 100;
+                require(
+                    ERC20(tokenAddress).transfer(
+                        developerAddress,
+                        rewardAmount
+                    ),
+                    "Reward transfer failed"
+                );
+                isReward[rewardProposalId] = true;
+                emit RewardClaimed(proposer, totalProposals);
+            }
+        }
+    }
 }
