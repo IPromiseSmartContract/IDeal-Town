@@ -2,21 +2,16 @@
 pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol";
 
-contract IPJToken is ERC20 {
+contract IPJToken is ERC20, ERC20Permit {
     mapping(address => uint256) private _balances;
-    uint256 internal _maxSupply;
     address public owner;
 
     constructor(
         string memory _name,
-        string memory _symbol,
-        uint256 amount
-    ) ERC20(_name, _symbol) {
-        // maxSupply : the max supply of token.
-        // totalSupply : the current supply of token.
-        _maxSupply = amount * 10 ** decimals();
-    }
+        string memory _symbol
+    ) ERC20(_name, _symbol) ERC20Permit(_name) {}
 
     modifier onlyOwner() {
         require(msg.sender == owner, "IPJToken: caller is not the owner");
@@ -38,18 +33,13 @@ contract IPJToken is ERC20 {
         address account,
         uint256 amount
     ) external isInitialized onlyOwner {
-        // totalSupply couldn't more than maxSupply.
-        require(
-            totalSupply() + amount * 10 ** decimals() <= _maxSupply,
-            "IPJToken: total supply exceeds maximum supply"
-        );
-        _mint(account, amount * 10 ** decimals());
+        _mint(account, amount);
     }
 
     function burn(
         address account,
         uint256 amount
     ) external isInitialized onlyOwner {
-        _burn(account, amount * 10 ** decimals());
+        _burn(account, amount);
     }
 }
