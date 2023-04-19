@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "./IPJToken.sol";
 import "./IDTToken.sol";
-
+import "hardhat/console.sol";
 interface IToken {
     function mint(address account, uint256 amount) external;
 
@@ -40,12 +40,12 @@ contract Project {
     Stages public currentStage;
 
     Proposal[] public proposals; // Index 0 indicates the proposal of proposer, others are developers' solution
-    uint[] public rewardProposal; // Store the rewarded proposalId
+    //uint[] public rewardProposal; // Store the rewarded proposalId
     uint8 public cumulatedPercentage;
 
     mapping(address => bool) public developers;
     mapping(address => bool) public reviewers;
-    mapping(uint256 => uint8) public votes; // Store every proposalId's number of votes
+    mapping(uint256 => uint256) public votes; // Store every proposalId's number of votes
 
     modifier onlyProposer() {
         require(
@@ -83,9 +83,8 @@ contract Project {
         threshold = _threshold;
         ipjtoken = _ipjtoken;
         currentStage = Stages.Open;
-
         ipjtoken.initialize(address(this));
-        unirep.attesterSignUp(epochLength);
+        //unirep.attesterSignUp(epochLength);
         submitURL(_proposer, _proposalURL);
     }
 
@@ -149,11 +148,11 @@ contract Project {
         uint8 percent
     ) external onlyProposer requireStage(Stages.Vote) {
         require(
-            cumulatedPercentage + percent > 100,
+            cumulatedPercentage + percent <= 100,
             "Project: The percentage is over 100"
         );
-        votes[proposalId] += percent; // Add the votes from the Proposer to the proposalId.
-        rewardProposal.push(proposalId); // Store the rewarded proposalId
+        uint256 balance = ERC20(idt).balanceOf(address(this));
+        votes[proposalId] += (percent*balance)/100; // Add the votes from the Proposer to the proposalId.
         cumulatedPercentage += percent;
         emit Voted(msg.sender, proposalId);
     }
@@ -176,5 +175,9 @@ contract Project {
         uint256 proposalIndex
     ) external requireStage(Stages.Reward) {
         // @Maxie revise
+        Proposal memory proposalStruct = proposals[proposalIndex];
+        address payable developerAddress = payable(proposalStruct.author); 
+        require(ERC20(idt).transfer(developerAddress,votes[proposalIndex]), "Reward transfer failed");
+        votes[proposalIndex]=0;
     }
 }
