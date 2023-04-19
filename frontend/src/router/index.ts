@@ -3,6 +3,7 @@ import HomeView from '../views/HomeView.vue'
 import ProjectView from '../views/ProjectView.vue'
 import ProjectListView from '../views/ProjectListView.vue'
 import DaoProposalView from '../views/DaoProposalView.vue'
+import CreateProjectVue from "@/views/CreateProject.vue"
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -26,6 +27,11 @@ const router = createRouter({
       path: '/dao/proposal',
       name: 'createProposal',
       component: DaoProposalView
+    },
+    {
+      path: '/create-project',
+      name: 'CreateProjectVue',
+      component: CreateProjectVue
     },
   ]
 })
