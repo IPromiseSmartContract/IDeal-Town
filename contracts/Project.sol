@@ -43,7 +43,6 @@ contract Project {
     mapping(address => bool) public developers;
     mapping(address => bool) public reviewers;
     mapping(uint256 => uint8) public votes; // Store every proposalId's number of votes
-    mapping(uint256 => bool) public isReward;
 
     modifier onlyProposer() {
         require(
