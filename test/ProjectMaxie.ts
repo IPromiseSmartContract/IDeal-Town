@@ -13,7 +13,7 @@ describe("Project_Maxie", function () {
     let proposer: any;
     let developer1: any;
     let developer2: any;
-    const investAmount = 1000;
+    let investAmount: any;
     beforeEach(async () => {
         [proposer, developer1, developer2] = await ethers.getSigners();
         
@@ -43,7 +43,9 @@ describe("Project_Maxie", function () {
         await idtToken.mint(proposer.address,10000);
         //await idtToken.transfer(project.address, ethers.utils.parseEther("1000"));
         await idtToken.approve(project.address,10000000000);
-        await project.invest(investAmount);
+        const investIdtToken = 1000;
+        await project.invest(investIdtToken);
+        investAmount = await idtToken.balanceOf(project.address); 
         await project.submitURL(developer1.address, "https://dev1.com");
         await project.submitURL(developer2.address, "https://dev2.com");
     });
