@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 contract IPJToken is ERC20 {
     mapping(address => uint256) private _balances;
     uint256 internal _maxSupply;
-    uint256 internal _totalSupply;
     address public owner;
 
     constructor(
@@ -17,7 +16,6 @@ contract IPJToken is ERC20 {
         // maxSupply : the max supply of token.
         // totalSupply : the current supply of token.
         _maxSupply = amount * 10 ** decimals();
-        _totalSupply = 0;
     }
 
     modifier onlyOwner() {
@@ -42,7 +40,7 @@ contract IPJToken is ERC20 {
     ) external isInitialized onlyOwner {
         // totalSupply couldn't more than maxSupply.
         require(
-            _totalSupply + amount * 10 ** decimals() <= _maxSupply,
+            totalSupply() + amount * 10 ** decimals() <= _maxSupply,
             "IPJToken: total supply exceeds maximum supply"
         );
         _mint(account, amount * 10 ** decimals());
