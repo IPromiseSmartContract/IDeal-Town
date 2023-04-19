@@ -22,19 +22,26 @@ contract ProjectFactory {
         uint256 threshold,
         string memory proposalURL // url of the proposal
     ) public {
+        // create IPJToken for project
+        IPJToken token = new IPJToken(
+            string.concat("IPJToken for ", name),
+            string.concat("IPJ#", Strings.toString(_count)),
+            amount
+        );
+
         // deploy project contract and push project address into ProjectAddress list.
         Project project = new Project(
             name,
             msg.sender,
             expiration,
             threshold,
-            address(0),
+            token,
             proposalURL,
             unirep
         );
         ProjectAddress.push(address(project));
 
-        // add project number
+        // increase project number
         _count++;
     }
 

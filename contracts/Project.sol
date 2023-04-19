@@ -22,7 +22,7 @@ contract Project {
     }
 
     struct Proposal {
-        address authur; // arthur of this proposal
+        address author; // author of this proposal
         string url; // url of the proposal
     }
 
@@ -33,15 +33,18 @@ contract Project {
     address public proposer;
     uint256 public expiration;
     uint256 public threshold;
-    address public tokenAddress;
-    uint256 public totalProposals;
+    IPJToken public ipjtoken;
     Stages public currentStage;
+
+    Proposal[] public proposals; // Index 0 indicates the proposal of proposer, others are developers' solution
+    uint[] public rewardProposal; // Store the rewarded proposalId
+    uint8 public cumulatedPercentage;
+
     mapping(address => bool) public developers;
     mapping(address => bool) public reviewers;
-    Proposal[] public proposals;
-    uint[] public rewardProposal; // Store the rewarded proposalId
-    mapping(uint256 => uint256) public votes; // Store every proposalId's number of votes
+    mapping(uint256 => uint8) public votes; // Store every proposalId's number of votes
     mapping(uint256 => bool) public isReward;
+
     modifier onlyProposer() {
         require(
             msg.sender == proposer,
@@ -64,7 +67,7 @@ contract Project {
         address _proposer,
         uint256 _expiration,
         uint256 _threshold,
-        address _ipjaddr,
+        IPJToken _ipjtoken,
         string memory _proposalURL,
         Unirep _unirep
     ) {
@@ -74,21 +77,23 @@ contract Project {
         proposer = _proposer;
         expiration = _expiration;
         threshold = _threshold;
-        tokenAddress = _ipjaddr;
+        ipjtoken = _ipjtoken;
         currentStage = Stages.Open;
+
+        ipjtoken.initialize(address(this));
         submitURL(_proposer, _proposalURL);
     }
 
     function mintToken(uint256 amount) public {
-        IToken(tokenAddress).mint(msg.sender, amount);
+        ipjtoken.mint(msg.sender, amount);
     }
 
     function burnToken(uint256 amount) public {
-        IToken(tokenAddress).burn(msg.sender, amount);
+        ipjtoken.burn(msg.sender, amount);
     }
 
     function getTokenAddress() public view returns (address) {
-        return tokenAddress;
+        return address(ipjtoken);
     }
 
     // @ Test
@@ -110,7 +115,10 @@ contract Project {
         uint256[] memory publicSignals,
         uint256[8] memory proof
     ) public {
-        require(!developers[msg.sender], "Developer already registered.");
+        require(
+            !developers[msg.sender],
+            "Project: Developer already registered."
+        );
         developers[msg.sender] = true;
         unirep.verifyReputationProof(publicSignals, proof);
     }
@@ -122,9 +130,8 @@ contract Project {
         unirep.userStateTransition(publicSignals, proof);
     }
 
-    // TODO: receive file url from proposer's proposal and developer's solution
+    // receive file url from proposer's proposal and developer's solution
     // You should increase the total proposal count, push the url to the proposals mapping and emit URLSubmitted event
-    // @ Maxie
     function submitURL(
         address developer,
         string memory url
@@ -133,21 +140,24 @@ contract Project {
         emit URLSubmitted(developer, url);
     }
 
-    // TODO: proposer vote for their favorite solution(s)
-    // You should emit Voted event if the proposal is accepted
-    // @ Maxie
+    // proposer vote for their favorite solution(s)
+    // emit Voted event if the proposal is accepted
     function voteForSolution(
         uint256 proposalId,
-        uint256 percnet
+        uint8 percnet
     ) external onlyProposer requireStage(Stages.Vote) {
+        require(
+            cumulatedPercentage + percnet > 100,
+            "Project: The percentage is over 100"
+        );
         votes[proposalId] += percnet; // Add the votes from the Proposer to the proposalId.
         rewardProposal.push(proposalId); // Store the rewarded proposalId
+        cumulatedPercentage += percnet;
         emit Voted(msg.sender, proposalId);
     }
 
-    // TODO: reviewers review the solution and send reputation by unirep
-    // You should emit Reviewed event if the solution is accepted
-    // @ Alan
+    // reviewers review the solution and send reputation by unirep
+    // emit Reviewed event if the solution is accepted
     function review(
         uint256 epochKey,
         uint48 targetEpoch,
@@ -157,28 +167,12 @@ contract Project {
         unirep.attest(epochKey, targetEpoch, fieldIndex, val);
     }
 
-    // TODO: claim reward after the project is expired
-    // You should emit RewardClaimed event
-    // @ Maxie
-    function claimReward() external requireStage(Stages.Reward) {
-        for (uint256 i = 0; i < rewardProposal.length; i++) {
-            uint256 rewardProposalId = rewardProposal[i];
-            if (!isReward[rewardProposalId]) {
-                Proposal memory proposalStruct = proposals[rewardProposalId];
-                address payable developerAddress = payable(
-                    proposalStruct.authur
-                );
-                uint256 rewardAmount = votes[rewardProposalId] / 100;
-                require(
-                    ERC20(tokenAddress).transfer(
-                        developerAddress,
-                        rewardAmount
-                    ),
-                    "Reward transfer failed"
-                );
-                isReward[rewardProposalId] = true;
-                emit RewardClaimed(proposer, totalProposals);
-            }
-        }
+    // claim reward for the specific proposal Index
+    // the reward will issue to the author's address of the proposal
+    // emit RewardClaimed event
+    function claimReward(
+        uint256 proposalIndex
+    ) external requireStage(Stages.Reward) {
+        // @Maxie revise
     }
 }
