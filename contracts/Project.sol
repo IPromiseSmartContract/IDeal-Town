@@ -57,9 +57,9 @@ contract Project {
         _;
     }
 
-    event URLSubmitted(address indexed sender, string url);
-    event Voted(address indexed sender, uint256 proposalIndex);
-    event Reviewed(address indexed sender, uint256 proposalIndex);
+    event URLSubmitted(address indexed submitter, string url);
+    event Voted(address indexed voter, uint256 proposalIndex);
+    event Reviewed(address indexed reveiwer, uint256 proposalIndex);
     event RewardClaimed(address indexed sender, uint256 proposalIndex);
 
     constructor(
