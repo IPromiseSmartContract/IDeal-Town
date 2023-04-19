@@ -25,8 +25,7 @@ contract ProjectFactory {
             msg.sender,
             expiration,
             threshold,
-            _count,
-            amount,
+            address(0),
             proposalURL
         );
         ProjectAddress.push(address(project));
