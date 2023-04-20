@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@blocto/sdk": "^0.4.1",
+    "@metamask/providers": "^10.2.1",
     "@vavt/md-editor-extension": "^2.0.0",
     "ethers": "^6.3.0",
     "ipfs-core": "^0.18.0",
