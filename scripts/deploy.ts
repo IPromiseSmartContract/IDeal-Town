@@ -1,19 +1,23 @@
 import { ethers } from "hardhat";
+import { deployUnirep } from "@unirep/contracts/deploy"
 
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const unlockTime = currentTimestampInSeconds + 60;
+  const [signer] = await ethers.getSigners()
+  console.log("Deploying contracts with the account:", signer.address)
 
-  const lockedAmount = ethers.utils.parseEther("0.001");
+  const unirep = await deployUnirep(signer)
+  console.log("UniRep deployed to:", unirep.address)
 
-  const Lock = await ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
+  const IDTInitialSupply = ethers.utils.parseEther("100000");
+  const IDTTokenFactory = await ethers.getContractFactory("IDTToken");
+  const idtToken = await IDTTokenFactory.connect(signer).deploy(IDTInitialSupply);
+  await idtToken.deployed();
+  console.log(`IDTToken deployed to: ${idtToken.address} | initialSupply: ${IDTInitialSupply}`);
 
-  await lock.deployed();
-
-  console.log(
-    `Lock with ${ethers.utils.formatEther(lockedAmount)}ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`
-  );
+  const ProjectFactoryFactory = await ethers.getContractFactory("ProjectFactory");
+  const projectFactory = await ProjectFactoryFactory.connect(signer).deploy(unirep.address, idtToken.address);
+  await projectFactory.deployed();
+  console.log(`ProjectFactory deployed to: ${projectFactory.address}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
