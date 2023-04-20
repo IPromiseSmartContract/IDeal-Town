@@ -1,17 +1,20 @@
 // SPDX-License-Identifier: MIT
 import { expect } from "chai";
 import { ethers } from "hardhat";
-import { Contract, Signer } from "ethers";
+import { Signer } from "ethers";
+import { IDTToken } from "../typechain-types";
 
 describe("IDTToken", function () {
-    let IDTToken: Contract;
+    let IDTToken: IDTToken;
     let owner: Signer;
     let addr1: Signer;
+
+    const initialSupply = ethers.utils.parseEther("1");
 
     beforeEach(async function () {
         const IDTTokenFactory = await ethers.getContractFactory("IDTToken");
         [owner, addr1] = await ethers.getSigners();
-        IDTToken = await IDTTokenFactory.connect(owner).deploy(1n);
+        IDTToken = await IDTTokenFactory.connect(owner).deploy(initialSupply);
         await IDTToken.deployed();
     });
 
@@ -25,13 +28,14 @@ describe("IDTToken", function () {
     });
 
     it("Should mint the initial supply correctly", async function () {
-        expect(await IDTToken.totalSupply()).to.equal(1n * 10n ** BigInt(await IDTToken.decimals()));
-        expect(await IDTToken.balanceOf(await owner.getAddress())).to.equal(1n * 10n ** BigInt(await IDTToken.decimals()));
+        expect(await IDTToken.totalSupply()).to.equal(initialSupply);
+        expect(await IDTToken.balanceOf(await owner.getAddress())).to.equal(initialSupply);
     });
 
     it("Should allow owner to mint new tokens", async function () {
-        await IDTToken.connect(owner).mint(await addr1.getAddress(), 1000n);
-        expect(await IDTToken.balanceOf(await addr1.getAddress())).to.equal(1000n * 10n ** BigInt(await IDTToken.decimals()));
+        const mintAmount = ethers.utils.parseEther("1000");
+        await IDTToken.connect(owner).mint(await addr1.getAddress(), mintAmount);
+        expect(await IDTToken.balanceOf(await addr1.getAddress())).to.equal(mintAmount);
     });
 
     it("Should revert if non-owner tries to mint", async function () {

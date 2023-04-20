@@ -2,26 +2,66 @@
 pragma solidity ^0.8.17;
 
 import "./Project.sol";
+import "./IDTToken.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import {Unirep} from "@unirep/contracts/Unirep.sol";
 
-contract ProjectFactory {
-    address[] public ProjectAddress;
-    uint256 _count;
-    
+contract ProjectFactory is Ownable {
+    Unirep public unirep;
+    IDTToken public idt;
+    uint256 public count;
+    uint48 internal constant epochLength = 1000;
+    address[] public reviewers;
+
+    event ProjectCreated(
+        address indexed creator,
+        address projectAddress,
+        address tokenAddress
+    );
+
+    modifier incr() {
+        _;
+        count++;
+    }
+
     // count for project number.
-    constructor() {
-        _count = 0;
+    constructor(address _unirepAddr, address _idtAddr) {
+        unirep = Unirep(_unirepAddr);
+        idt = IDTToken(_idtAddr);
     }
 
-    function createProject(string memory name, uint256 amount, uint256 expiration, uint256 threshold) public {
+    function createProject(
+        string memory name,
+        uint256 expiration,
+        uint256 threshold,
+        string memory proposalURL // url of the proposal
+    ) public incr {
+        // create IPJToken for project
+        IPJToken token = new IPJToken(
+            string.concat("IPJToken for ", name),
+            string.concat("IPJ#", Strings.toString(count))
+        );
+
         // deploy project contract and push project address into ProjectAddress list.
-        Project project = new Project(name, address(this), expiration, threshold, _count, amount);
-        ProjectAddress.push(address(project));
-
-        // add project number
-        _count++;
+        Project project = new Project(
+            name,
+            msg.sender,
+            expiration,
+            threshold,
+            token,
+            proposalURL,
+            reviewers,
+            idt,
+            unirep
+        );
+        project.registerAttester(epochLength);
+        emit ProjectCreated(msg.sender, address(project), address(token));
     }
 
-    function count() view public returns(uint256){
-        return _count;
+    function updateReviewers(
+        address[] calldata newReviewers
+    ) external onlyOwner {
+        delete reviewers;
+        reviewers = newReviewers;
     }
 }
