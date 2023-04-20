@@ -191,7 +191,7 @@ contract Project {
     function voteForSolution(
         uint256 solutionId,
         uint8 percent
-    ) external onlyProposer requireStage(Stages.Vote) {
+    ) external requireStage(Stages.Vote) onlyProposer {
         require(
             cumulatedPercentage + percent <= 100,
             "Project: The percentage is over 100"
@@ -209,7 +209,7 @@ contract Project {
         uint48 targetEpoch,
         uint256 fieldIndex,
         uint256 val
-    ) external requireStage(Stages.Review) {
+    ) external requireStage(Stages.Review) onlyReviewer {
         unirep.attest(epochKey, targetEpoch, fieldIndex, val);
     }
 
@@ -220,7 +220,7 @@ contract Project {
         uint256 solutionId,
         uint256[] calldata publicSignals,
         uint256[8] calldata proof
-    ) external requireStage(Stages.Reward) {
+    ) external requireStage(Stages.Reward) onlyDeveloper {
         Payload memory proposalStruct = solutions[solutionId];
         address payable developerAddress = payable(proposalStruct.author);
         require(
