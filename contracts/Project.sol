@@ -41,8 +41,8 @@ contract Project {
     Payload[] public solutions; // developers' solutions
     uint8 public cumulatedPercentage;
 
-    mapping(address => bool) public developers;
-    mapping(address => bool) public reviewers;
+    mapping(address => bool) public developers; // developer register
+    mapping(address => uint8) public reviewers; // reviewer register 1 is the initial value, 2 is registered
     mapping(uint256 => uint256) public votes; // Store every proposalId's number of votes
 
     modifier onlyProposer() {
@@ -56,6 +56,13 @@ contract Project {
         require(
             developers[msg.sender],
             "Project: Only developer can call this function."
+        );
+        _;
+    }
+    modifier onlyReviewer() {
+        require(
+            reviewers[msg.sender] == 2,
+            "Project: Only reviewer can call this function."
         );
         _;
     }
@@ -76,6 +83,7 @@ contract Project {
         uint256 _threshold,
         IPJToken _ipjtoken,
         string memory _proposalURL,
+        address[] memory _reviewers,
         IDTToken _idt,
         Unirep _unirep
     ) {
@@ -85,6 +93,10 @@ contract Project {
         threshold = _threshold;
         ipjtoken = _ipjtoken;
         currentStage = Stages.Open;
+
+        for (uint256 i = 0; i < _reviewers.length; i++) {
+            reviewers[_reviewers[i]] = 1;
+        }
 
         idt = _idt;
         unirep = _unirep;
@@ -131,10 +143,25 @@ contract Project {
         // TODO: unirep.verifyReputationProof(reputationPublicSignals, reputationProof);
     }
 
+    // register as a reviewer of this project
+    // one should submit a prove of their reputation is higher than threshold
+    // if the prove is invalid, the transaction will be reverted
+    function registerReviewer(
+        uint256[] calldata signupPublicSignals,
+        uint256[8] calldata signupProof
+    ) external {
+        require(
+            reviewers[msg.sender] == 1,
+            "Project: Reviewer already registered or not a valid reviewer."
+        );
+        reviewers[msg.sender] = 2;
+        unirep.userSignUp(signupPublicSignals, signupProof);
+    }
+
     function userStateTransition(
         uint256[] calldata publicSignals,
         uint256[8] calldata proof
-    ) external {
+    ) public {
         unirep.userStateTransition(publicSignals, proof);
     }
 
@@ -178,9 +205,10 @@ contract Project {
     // the reward will issue to the author's address of the proposal
     // emit RewardClaimed event
     function claimReward(
-        uint256 solutionId
+        uint256 solutionId,
+        uint256[] calldata publicSignals,
+        uint256[8] calldata proof
     ) external requireStage(Stages.Reward) {
-        // @Maxie revise
         Payload memory proposalStruct = solutions[solutionId];
         address payable developerAddress = payable(proposalStruct.author);
         require(
@@ -188,5 +216,6 @@ contract Project {
             "Reward transfer failed"
         );
         votes[solutionId] = 0;
+        userStateTransition(publicSignals, proof);
     }
 }
