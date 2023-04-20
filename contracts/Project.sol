@@ -41,7 +41,7 @@ contract Project {
     Payload[] public solutions; // developers' solutions
     uint8 public cumulatedPercentage;
 
-    mapping(address => bool) public developers; // developer register
+    mapping(address => uint8) public developers; // developer register 1 is the register value, 2 is verified
     mapping(address => uint8) public reviewers; // reviewer register 1 is the initial value, 2 is registered
     mapping(uint256 => uint256) public votes; // Store every proposalId's number of votes
 
@@ -54,8 +54,8 @@ contract Project {
     }
     modifier onlyDeveloper() {
         require(
-            developers[msg.sender],
-            "Project: Only developer can call this function."
+            developers[msg.sender] == 2,
+            "Project: Only verified developer can call this function."
         );
         _;
     }
@@ -135,12 +135,24 @@ contract Project {
         uint256[8] calldata signupProof
     ) external {
         require(
-            !developers[msg.sender],
+            developers[msg.sender] == 0,
             "Project: Developer already registered."
         );
-        developers[msg.sender] = true;
+        developers[msg.sender] = 1;
         unirep.userSignUp(signupPublicSignals, signupProof);
-        // TODO: unirep.verifyReputationProof(reputationPublicSignals, reputationProof);
+    }
+
+    // After a developer is registered, he/she should submit a prove of their reputation is higher than threshold
+    function verifyDeveloper(
+        uint256[] calldata reputationPublicSignals,
+        uint256[8] calldata reputationProof
+    ) external {
+        require(
+            developers[msg.sender] == 1,
+            "Project: Developer already verified or not registered."
+        );
+        developers[msg.sender] = 2;
+        unirep.verifyReputationProof(reputationPublicSignals, reputationProof);
     }
 
     // register as a reviewer of this project
