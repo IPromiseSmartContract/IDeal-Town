@@ -1,0 +1,26 @@
+@import './base.css';
+
+#app {
+  margin: 0 auto;
+  /* padding: 2rem; */
+  font-weight: normal;
+}
+body {
+  background-color: rgb(252, 247, 240);
+}
+
+@media (hover: hover) {
+  a:hover {
+    background-color: hsla(160, 100%, 37%, 0.2);
+  }
+}
+
+@media (min-width: 1024px) {
+  body {
+    display: flex;
+  }
+
+  #app {
+    width: 100%;
+  }
+}
