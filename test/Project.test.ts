@@ -4,10 +4,7 @@ import { Synchronizer, UserState, schema } from '@unirep/core'
 import { Identity } from "@semaphore-protocol/identity"
 import { Unirep } from "@unirep/contracts";
 import { deployUnirep } from "@unirep/contracts/deploy"
-import {
-    genEpochKey,
-    stringifyBigInts,
-} from '@unirep/utils';
+import { genEpochKey } from '@unirep/utils';
 import { defaultProver } from '@unirep/circuits/provers/defaultProver'
 import { Project, IDTToken, IPJToken } from "../typechain-types"
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
@@ -129,17 +126,39 @@ describe("Project", function () {
         await project.connect(reviewer2).registerReviewer(signupProof4.publicSignals, signupProof4.proof,);
 
         // Mint IDTToken to proposer
-        const lockAmount = ethers.utils.parseEther("1000");
-        await idtToken.connect(deployer).mint(proposer.address, lockAmount);
-        await idtToken.connect(proposer).approve(project.address, lockAmount);
+        const mintAmount = ethers.utils.parseEther("2000");
+        await idtToken.connect(deployer).mint(proposer.address, mintAmount); // Mint 2000 idtTokens, but only lock 1000. The remain 1000 is for exchange() testing.
+        await idtToken.connect(proposer).approve(project.address, mintAmount);
 
         // Exchange IDTToken to IPJToken
+        const lockAmount = ethers.utils.parseEther("1000");
         await project.connect(proposer).exchange(lockAmount);
     });
 
     afterEach(async () => {
         await ethers.provider.send("evm_revert", [snapshot]);
     })
+
+    it("should revert exchange() if the stage is wrong", async function () {
+        await project.setCurrentStage(1); // Manually set the current stage to Vote
+        expect(project.connect(proposer).exchange(0)).to.be.revertedWith("Project is not in the right stage.");
+    });
+
+    it("should exchange IDT to IPJToken with 1:1 ratio", async function () {
+        const lockAmount = ethers.utils.parseEther("1000");
+        const proposerBalanceBefore = await idtToken.balanceOf(proposer.address);
+        const proposerIPJBalanceBefore = await ipjToken.balanceOf(proposer.address);
+
+        await idtToken.connect(proposer).approve(project.address, lockAmount);
+        await project.connect(proposer).exchange(lockAmount);
+
+        const proposerBalanceAfter = await idtToken.balanceOf(proposer.address);
+        const proposerIPJBalanceAfter = await ipjToken.balanceOf(proposer.address);
+
+        expect(proposerBalanceBefore.sub(lockAmount)).to.equal(proposerBalanceAfter);
+        expect(proposerIPJBalanceBefore.add(lockAmount)).to.equal(proposerIPJBalanceAfter);
+    });
+
 
     it("should submit solution urls", async function () {
         await project.connect(developer1).submitURL("https://dev1.com");
@@ -152,6 +171,39 @@ describe("Project", function () {
         expect(proposal1.url).to.equal("https://dev1.com");
         expect(proposal2.author).to.equal(developer2.address);
         expect(proposal2.url).to.equal("https://dev2.com");
+    });
+
+    it("should emit URLSubmitted event when developers submit solution urls", async function () {
+        await project.connect(developer1).submitURL("https://dev1.com");
+        await project.connect(developer2).submitURL("https://dev2.com");
+
+        await project.solutions(0);
+        await project.solutions(1);
+
+        // check if URLSubmitted event is emitted
+        const events = await project.queryFilter(project.filters.URLSubmitted());
+        expect(events.length).to.equal(2);
+
+        const eventArgs = events[0].args;
+        expect(eventArgs.submitter).to.equal(developer1.address);
+        expect(eventArgs.url).to.equal("https://dev1.com");
+
+        const eventArgs2 = events[1].args;
+        expect(eventArgs2.submitter).to.equal(developer2.address);
+        expect(eventArgs2.url).to.equal("https://dev2.com");
+    });
+
+    it("should revert voteForSolution() if the stage is wrong", async function () {
+        await project.connect(developer1).submitURL("https://dev1.com");
+        await project.setCurrentStage(0); // Manually set the current stage to Open, but it should be Vote stage
+        expect(project.connect(proposer).voteForSolution(0, 50)).to.be.revertedWith("Project is not in the right stage.");
+    });
+
+    it("should revert voteForSolution() if the percentage is over 100", async function () {
+        await project.connect(developer1).submitURL("https://dev1.com");
+        await project.setCurrentStage(1); // Manually set the current stage to Vote
+        await project.connect(proposer).voteForSolution(0, 60); // vote 60% for proposal 0
+        expect(project.connect(proposer).voteForSolution(0, 50)).to.be.revertedWith("Project: The percentage is over 100");
     });
 
     it("should vote for proposals", async function () {
@@ -170,7 +222,27 @@ describe("Project", function () {
         expect(votesProposal2).to.equal(lockAmount.mul(20).div(100));
     });
 
-    it("should review and claim reward, make sure developer 1 and developer 2 get the reward", async function () {
+    it("should emit Voted event when voting for proposals", async function () {
+        await project.connect(developer1).submitURL("https://dev1.com");
+        await project.connect(developer2).submitURL("https://dev2.com");
+
+        await project.setCurrentStage(1); // Manually set the current stage to Vote
+        await project.connect(proposer).voteForSolution(0, 10); // vote 10% for proposal 0
+        await project.connect(proposer).voteForSolution(1, 20); // vote 20% for proposal 1
+
+        const events = await project.queryFilter(project.filters.Voted());
+        expect(events.length).to.equal(2);
+        const eventArgs = events[0].args;
+        expect(eventArgs.proposalIndex).to.equal(0);
+        expect(eventArgs.voter).to.equal(proposer.address);
+
+        const eventArgs2 = events[1].args;
+        expect(eventArgs2.proposalIndex).to.equal(1);
+        expect(eventArgs2.voter).to.equal(proposer.address);
+
+    });
+
+    it("should claim reward and make sure developers get the reward", async function () {
         await project.connect(developer1).submitURL("https://dev1.com");
         await project.connect(developer2).submitURL("https://dev2.com");
 
