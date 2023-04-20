@@ -1,60 +1,72 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
-import { computed } from 'vue'
-import Card from 'primevue/card'
-import Timeline from 'primevue/timeline'
+import Button from 'primevue/button'
+import Steps from 'primevue/steps'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useToast } from 'primevue/usetoast'
+import type { MenuItem } from 'primevue/menuitem'
+import ProjectClosed from '@/components/Steps/ProjectClosed.vue'
+import ProjectOpen from '@/components/Steps/ProjectOpen.vue'
+import ProjectVote from '@/components/Steps/ProjectVote.vue'
+import ProjectReview from '@/components/Steps/ProjectReview.vue'
+import ProjectReward from '@/components/Steps/ProjectReward.vue'
 
-const events = ref([
+const currentStep = ref(0)
+const tabs = [ProjectOpen, ProjectVote, ProjectReview, ProjectReward, ProjectClosed]
+const items = ref<MenuItem[]>([
   {
-    status: 'Ordered',
-    date: '15/10/2020 10:30',
-    icon: 'pi pi-shopping-cart',
-    color: '#9C27B0',
-    image: 'game-controller.jpg'
+    key: '0',
+    label: 'Open'
   },
-  { status: 'Processing', date: '15/10/2020 14:00', icon: 'pi pi-cog', color: '#673AB7' },
-  { status: 'Shipped', date: '15/10/2020 16:15', icon: 'pi pi-shopping-cart', color: '#FF9800' },
-  { status: 'Delivered', date: '16/10/2020 10:00', icon: 'pi pi-check', color: '#607D8B' }
+  {
+    key: '1',
+    label: 'Vote'
+  },
+  {
+    key: '2',
+    label: 'Review'
+  },
+  {
+    key: '3',
+    label: 'Reward'
+  },
+  {
+    key: '4',
+    label: 'Closed'
+  }
 ])
-
-const route = useRoute()
-const address = computed(() => route.params.address)
+const changeStep = (stepKey: string | undefined) => {
+  if (!stepKey) {
+    console.error(`step key not exist: ${stepKey}`)
+  } else {
+    currentStep.value = parseInt(stepKey)
+  }
+}
 </script>
 <template>
-  <div class="grid">
-    <div class="col-8">
-      <Card style="background-color: inherit">
-        <template #header> </template>
-        <template #title> {{ address }} </template>
-        <template #subtitle> Card subtitle </template>
-        <template #content>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore sed consequuntur
-            error repudiandae numquam deserunt quisquam repellat libero asperiores earum nam nobis,
-            culpa ratione quam perferendis esse, cupiditate neque quas!
-          </p>
-        </template>
-        <template #footer> </template
-      ></Card>
-    </div>
-    <div class="col">
-      <Timeline :value="events">
-        <template #marker="slotProps">
-          <span
-            class="flex w-2rem h-2rem align-items-center justify-content-center text-white border-circle z-1 shadow-1"
-            :style="{ backgroundColor: slotProps.item.color }"
-          >
-            <i :class="slotProps.item.icon"></i>
-          </span>
-        </template>
-        <template #opposite="slotProps">
-          <small class="p-text-secondary">{{ slotProps.item.date }}</small>
-        </template>
-        <template #content="slotProps">
-          {{ slotProps.item.status }}
-        </template>
-      </Timeline>
-    </div>
+  <div class="card">
+    <Steps :readonly="false" :model="items" aria-label="Form Steps">
+      <template #item="slotProps">
+        <Button
+          class="bg-indigo-300 hover:bg-indigo-500"
+          size="small"
+          @click="changeStep(slotProps.item.key)"
+          >{{ slotProps.item.label }}</Button
+        >
+      </template>
+    </Steps>
   </div>
+
+  <keep-alive>
+    <component :is="tabs[currentStep]" />
+  </keep-alive>
 </template>
+
+<style scoped>
+::v-deep(.p-steps .p-steps-item) {
+  background-color: inherit;
+}
+::v-deep(.p-steps .p-button) {
+  margin-top: -30px;
+}
+</style>
