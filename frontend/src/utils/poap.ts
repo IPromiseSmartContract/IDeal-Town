@@ -219,6 +219,12 @@ async function scanAddressByEvent(input: scanAddressByEventInput): Promise<Respo
     return fetch(`${host}/actions/scan/${input.address}/${input.event_id}`, options)
 }
 
+function getImageName(url: string) {
+    const lastIndex = url.lastIndexOf("/");
+    return url.substring(lastIndex + 1);
+}
+
+
 async function url2base64(url: string) {
     const img = await fetch(url)
     const binary = await img.blob()
@@ -226,12 +232,14 @@ async function url2base64(url: string) {
         const reader = new FileReader();
         reader.readAsDataURL(binary);
         reader.onloadend = () => {
-            const base64data = reader.result;
+            const base64data = reader.result as string;
             if (!base64data) {
                 reject("unable to read")
                 return
             }
-            resolve(base64data);
+            const filename = getImageName(url) || "image.png";
+            const base64WithFilename = base64data.replace(/^data:(.*;base64,)?/, `data:image/png;name=${filename};base64,`);
+            resolve(base64WithFilename);
         }
     });
 }
