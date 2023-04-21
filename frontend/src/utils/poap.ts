@@ -109,7 +109,7 @@ export interface DropResponse {
     };
 }
 
-async function createDrop(input: CreateDropInput) {
+export async function createDrop(input: CreateDropInput) {
     const form = new FormData();
     for (const key in input) {
         if (Object.prototype.hasOwnProperty.call(input, key)) {
@@ -136,7 +136,7 @@ interface eventQRHashInput {
     secrect_code: string;
 }
 
-async function getEventQRCode(input: eventQRHashInput): Promise<Response> {
+export async function getEventQRCode(input: eventQRHashInput): Promise<Response> {
 
     const options = {
         method: 'POST',
@@ -159,7 +159,7 @@ interface claimInput {
     QRCode: string
 }
 
-async function claimNFT(input: claimInput): Promise<Response> {
+export async function claimNFT(input: claimInput): Promise<Response> {
     const options = {
         method: 'POST',
         headers: {
@@ -224,12 +224,12 @@ async function scanAddressByEvent(input: scanAddressByEventInput): Promise<Respo
     return fetch(`${host}/actions/scan/${input.address}/${input.event_id}`, options)
 }
 
-async function createEvent(): Promise<Response> {
+export async function createEvent(): Promise<Response> {
     const input: CreateDropsInput = {
         name: 'Test1 ' + toPOAPdate(today),
         description: 'Description',
-        city: 'Buenos Aires',
-        country: 'Argentina',
+        city: 'Taipei',
+        country: 'Taiwan',
         start_date: toPOAPdate(today),
         end_date: toPOAPdate(oneMonthFromToday),
         expiry_date: toPOAPdate(twoMonthsFromToday),
