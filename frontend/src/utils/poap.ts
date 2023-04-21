@@ -1,9 +1,6 @@
-import dotenv from 'dotenv';
-dotenv.config();
-
 const host = "https://api.poap.tech"
-const apiKey = process.env.API_KEY || '';
-const authToken = process.env.AUTHTOKEN || '';
+const apiKey = import.meta.env.VITE_API_KEY || '';
+const authToken = import.meta.env.AUTHTOKEN || '';
 
 export interface FetchDropsInput {
     limit: number;
