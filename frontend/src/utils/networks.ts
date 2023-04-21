@@ -3,6 +3,7 @@ import { ethers } from "ethers"
 export enum Networks {
     MAINNET = 1,
     GOERLI = 5,
+    SEPOLIA = 11155111,
     GNOSIS = 100,
     CHIADO = 10200,
 }
@@ -19,6 +20,18 @@ const goerliParams = {
         decimals: 18,
     },
 };
+
+const sepoliaParams = {
+    chainId: `0x${Networks.SEPOLIA.toString(16)}`,
+    chainName: "Sepolia Testnet",
+    rpcUrls: ["https://rpc.sepolia.org/"],
+    blockExplorerUrls: ["https://sepolia.etherscan.io/"],
+    nativeCurrency: {
+        name: "Ethereum",
+        symbol: "SepoliaETH",
+        decimals: 18,
+    },
+}
 
 const chiadoParams = {
     chainId: `0x${Networks.CHIADO.toString(16)}`,
@@ -59,8 +72,10 @@ export const getNetworkParams = (network: Networks = Networks.CHIADO) => {
             return gnosisParams;
         case Networks.CHIADO:
             return chiadoParams;
+        case Networks.SEPOLIA:
+            return sepoliaParams;
         default:
-            return chiadoParams;
+            return sepoliaParams;
     }
 }
 
