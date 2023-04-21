@@ -256,7 +256,7 @@ export async function createEvent(): Promise<Response> {
         event_url: 'https://poap.xyz/',
         virtual_event: true,
         secret_code: '123456',
-        image: (await url2base64('https://i.imgur.com/g2aXdAP.png')) as string,
+        image: (await url2base64('https://www.adobe.com/tw/express/feature/image/media_16ad2258cac6171d66942b13b8cd4839f0b6be6f3.png')) as string,
         filename: 'poap.png',
         contentType: 'image/png',
         event_template_id: 1,
