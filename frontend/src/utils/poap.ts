@@ -224,30 +224,36 @@ async function scanAddressByEvent(input: scanAddressByEventInput): Promise<Respo
     return fetch(`${host}/actions/scan/${input.address}/${input.event_id}`, options)
 }
 
-const main = async () => {
-    // const input: CreateDropsInput = {
-    //     name: 'Test1 ' + toPOAPdate(today),
-    //     description: 'Description',
-    //     city: 'Buenos Aires',
-    //     country: 'Argentina',
-    //     start_date: toPOAPdate(today),
-    //     end_date: toPOAPdate(oneMonthFromToday),
-    //     expiry_date: toPOAPdate(twoMonthsFromToday),
-    //     event_url: 'https://poap.xyz/',
-    //     virtual_event: true,
-    //     secret_code: '123456',
-    //     image: new Blob([await readFile("./src/assets/poap.png")], {
-    //         type: "image/png"
-    //     }),
-    //     filename: 'file.png',
-    //     contentType: 'image/png',
-    //     event_template_id: 1,
-    //     email: 'rodrigo@poap.io',
-    //     requested_codes: 10,
-    //     private_event: true,
-    // };
+async function createEvent(): Promise<Response> {
+    const input: CreateDropsInput = {
+        name: 'Test1 ' + toPOAPdate(today),
+        description: 'Description',
+        city: 'Buenos Aires',
+        country: 'Argentina',
+        start_date: toPOAPdate(today),
+        end_date: toPOAPdate(oneMonthFromToday),
+        expiry_date: toPOAPdate(twoMonthsFromToday),
+        event_url: 'https://poap.xyz/',
+        virtual_event: true,
+        secret_code: '123456',
+        image: new Blob([await readFile("./src/assets/poap.png")], {
+            type: "image/png"
+        }),
+        filename: 'file.png',
+        contentType: 'image/png',
+        event_template_id: 1,
+        email: 'rodrigo@poap.io',
+        requested_codes: 10,
+        private_event: true,
+    };
 
-    // const response = await createDrop(input)
+    return createDrop(input)
+}
+
+const main = async () => {
+
+
+
 
     // const input: eventQRHashInput = {
     //     event_id: '123656',
@@ -281,7 +287,7 @@ const main = async () => {
     // }
     // const response = await scanEventPOAP(input)
 
-    return response.json()
+    // return response.json()
 
 }
 main().then(data => {
