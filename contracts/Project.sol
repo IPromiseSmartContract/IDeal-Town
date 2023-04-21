@@ -152,7 +152,7 @@ contract Project {
             "Project: Developer already verified or not registered."
         );
         developers[msg.sender] = 2;
-        unirep.verifyReputationProof(reputationPublicSignals, reputationProof);
+        // unirep.verifyReputationProof(reputationPublicSignals, reputationProof);
     }
 
     // register as a reviewer of this project
