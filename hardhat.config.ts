@@ -81,7 +81,7 @@ const config: HardhatUserConfig = {
     apiKey: {
       "mainnet": process.env.ETHERSCAN_API_KEY || "",
       "goerli": process.env.ETHERSCAN_API_KEY || "",
-      "sepolia": process.env.SEPOLIA_API_KEY || "",
+      "sepolia": process.env.ETHERSCAN_API_KEY || "",
       "chiado": process.env.CHIADO_API_KEY || "",
       "gnosis": process.env.GNOSIS_API_KEY || "",
       "thunder-testnet": "unused",
