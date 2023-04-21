@@ -112,7 +112,7 @@ const items = ref([
     <div
         :style="{
             position: 'sticky',
-            bottom: '15vh',
+            bottom: '20vh',
             height: '10px',
             left: '20px'
         }"
