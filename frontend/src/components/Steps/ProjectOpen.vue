@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
 import { computed, defineAsyncComponent, reactive } from 'vue'
 import Tag from 'primevue/tag'
 import ProgressBar from 'primevue/progressbar'

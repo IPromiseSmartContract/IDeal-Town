@@ -2,8 +2,6 @@
 import Button from 'primevue/button'
 import Steps from 'primevue/steps'
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useToast } from 'primevue/usetoast'
 import type { MenuItem } from 'primevue/menuitem'
 import ProjectClosed from '@/components/Steps/ProjectClosed.vue'
 import ProjectOpen from '@/components/Steps/ProjectOpen.vue'
