@@ -103,12 +103,12 @@ const handlePublish = (
             @click="handlePublish(text, files, storeOnDAOContract)"
             >Publish
         </Button>
-        <Button
+        <!-- <Button
             text
             class="btn shadow-3 text-black-alpha-90 hover:surface-700 text-l surface-500 hover:text-50"
             @click="router.push('/')"
-            >Cancel
-        </Button>
+            >
+        </Button> -->
     </div>
 </template>
 <style scoped></style>
