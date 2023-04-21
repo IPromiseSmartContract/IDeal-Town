@@ -41,8 +41,8 @@ contract Project {
     Payload[] public solutions; // developers' solutions
     uint8 public cumulatedPercentage;
 
-    mapping(address => bool) public developers;
-    mapping(address => bool) public reviewers;
+    mapping(address => uint8) public developers; // developer register 1 is the register value, 2 is verified
+    mapping(address => uint8) public reviewers; // reviewer register 1 is the initial value, 2 is registered
     mapping(uint256 => uint256) public votes; // Store every proposalId's number of votes
 
     modifier onlyProposer() {
@@ -54,8 +54,15 @@ contract Project {
     }
     modifier onlyDeveloper() {
         require(
-            developers[msg.sender],
-            "Project: Only developer can call this function."
+            developers[msg.sender] == 2,
+            "Project: Only verified developer can call this function."
+        );
+        _;
+    }
+    modifier onlyReviewer() {
+        require(
+            reviewers[msg.sender] == 2,
+            "Project: Only reviewer can call this function."
         );
         _;
     }
@@ -76,6 +83,7 @@ contract Project {
         uint256 _threshold,
         IPJToken _ipjtoken,
         string memory _proposalURL,
+        address[] memory _reviewers,
         IDTToken _idt,
         Unirep _unirep
     ) {
@@ -85,6 +93,10 @@ contract Project {
         threshold = _threshold;
         ipjtoken = _ipjtoken;
         currentStage = Stages.Open;
+
+        for (uint256 i = 0; i < _reviewers.length; i++) {
+            reviewers[_reviewers[i]] = 1;
+        }
 
         idt = _idt;
         unirep = _unirep;
@@ -123,18 +135,44 @@ contract Project {
         uint256[8] calldata signupProof
     ) external {
         require(
-            !developers[msg.sender],
+            developers[msg.sender] == 0,
             "Project: Developer already registered."
         );
-        developers[msg.sender] = true;
+        developers[msg.sender] = 1;
         unirep.userSignUp(signupPublicSignals, signupProof);
-        // TODO: unirep.verifyReputationProof(reputationPublicSignals, reputationProof);
+    }
+
+    // After a developer is registered, he/she should submit a prove of their reputation is higher than threshold
+    function verifyDeveloper(
+        uint256[] calldata reputationPublicSignals,
+        uint256[8] calldata reputationProof
+    ) external {
+        require(
+            developers[msg.sender] == 1,
+            "Project: Developer already verified or not registered."
+        );
+        developers[msg.sender] = 2;
+        // unirep.verifyReputationProof(reputationPublicSignals, reputationProof);
+    }
+
+    // register as a reviewer of this project
+    // if the prove is invalid, the transaction will be reverted
+    function registerReviewer(
+        uint256[] calldata signupPublicSignals,
+        uint256[8] calldata signupProof
+    ) external {
+        require(
+            reviewers[msg.sender] == 1,
+            "Project: Reviewer already registered or not a valid reviewer."
+        );
+        reviewers[msg.sender] = 2;
+        unirep.userSignUp(signupPublicSignals, signupProof);
     }
 
     function userStateTransition(
         uint256[] calldata publicSignals,
         uint256[8] calldata proof
-    ) external {
+    ) public {
         unirep.userStateTransition(publicSignals, proof);
     }
 
@@ -152,7 +190,7 @@ contract Project {
     function voteForSolution(
         uint256 solutionId,
         uint8 percent
-    ) external onlyProposer requireStage(Stages.Vote) {
+    ) external requireStage(Stages.Vote) onlyProposer {
         require(
             cumulatedPercentage + percent <= 100,
             "Project: The percentage is over 100"
@@ -170,7 +208,7 @@ contract Project {
         uint48 targetEpoch,
         uint256 fieldIndex,
         uint256 val
-    ) external requireStage(Stages.Review) {
+    ) external requireStage(Stages.Review) onlyReviewer {
         unirep.attest(epochKey, targetEpoch, fieldIndex, val);
     }
 
@@ -178,9 +216,10 @@ contract Project {
     // the reward will issue to the author's address of the proposal
     // emit RewardClaimed event
     function claimReward(
-        uint256 solutionId
-    ) external requireStage(Stages.Reward) {
-        // @Maxie revise
+        uint256 solutionId,
+        uint256[] calldata publicSignals,
+        uint256[8] calldata proof
+    ) external requireStage(Stages.Reward) onlyDeveloper {
         Payload memory proposalStruct = solutions[solutionId];
         address payable developerAddress = payable(proposalStruct.author);
         require(
@@ -188,5 +227,6 @@ contract Project {
             "Reward transfer failed"
         );
         votes[solutionId] = 0;
+        userStateTransition(publicSignals, proof);
     }
 }

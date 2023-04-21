@@ -1,18 +1,27 @@
 import { ethers } from "hardhat";
+import { deployUnirep } from "@unirep/contracts/deploy"
 
 async function main() {
-  // Deploy the IDTToken contract
-  const IDTFactory = await ethers.getContractFactory("IDTToken");
-  const idt = await IDTFactory.deploy(1000);
-
+  const [signer] = await ethers.getSigners()
+  console.log("Deploying contracts with the account:", signer.address)
+  
   // Deploy the Dao contract
   const daoFactory = await ethers.getContractFactory("Dao");
   const dao = await daoFactory.deploy(idt.address);
+  
+  const unirep = await deployUnirep(signer)
+  console.log("UniRep deployed to:", unirep.address)
 
-  await Promise.all([idt.deployed(), dao.deployed()]);
+  const IDTInitialSupply = ethers.utils.parseEther("100000");
+  const IDTTokenFactory = await ethers.getContractFactory("IDTToken");
+  const idtToken = await IDTTokenFactory.connect(signer).deploy(IDTInitialSupply);
+  await idtToken.deployed();
+  console.log(`IDTToken deployed to: ${idtToken.address} | initialSupply: ${IDTInitialSupply}`);
 
-  console.log("IDTToken contract deployed to:", idt.address);
-  console.log("Dao contract deployed to:", dao.address);
+  const ProjectFactoryFactory = await ethers.getContractFactory("ProjectFactory");
+  const projectFactory = await ProjectFactoryFactory.connect(signer).deploy(unirep.address, idtToken.address);
+  await projectFactory.deployed();
+  console.log(`ProjectFactory deployed to: ${projectFactory.address}`);
 }
 
 main()

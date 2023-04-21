@@ -3,16 +3,19 @@ pragma solidity ^0.8.17;
 
 import "./Project.sol";
 import "./IDTToken.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import {Unirep} from "@unirep/contracts/Unirep.sol";
 
-contract ProjectFactory {
+contract ProjectFactory is Ownable {
     Unirep public unirep;
     IDTToken public idt;
     uint256 public count;
-    uint48 internal constant epochLength = 1000;
+    uint48 internal constant epochLength = 30;
+    address[] public reviewers;
 
     event ProjectCreated(
         address indexed creator,
+        uint256 indexed projectId,
         address projectAddress,
         address tokenAddress
     );
@@ -48,10 +51,23 @@ contract ProjectFactory {
             threshold,
             token,
             proposalURL,
+            reviewers,
             idt,
             unirep
         );
         project.registerAttester(epochLength);
-        emit ProjectCreated(msg.sender, address(project), address(token));
+        emit ProjectCreated(
+            msg.sender,
+            count,
+            address(project),
+            address(token)
+        );
+    }
+
+    function updateReviewers(
+        address[] calldata newReviewers
+    ) external onlyOwner {
+        delete reviewers;
+        reviewers = newReviewers;
     }
 }
