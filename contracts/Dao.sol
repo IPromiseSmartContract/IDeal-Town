@@ -33,8 +33,7 @@ contract Dao {
 
     function startVoting(uint256 _durationMinutes, address[] memory _candidateAddress) public {
         require(!voteStage, "There are still a voting exist.");
-        // clean origin reviewer list
-        delete reviewerList;
+
         // candidates amount start from 0
         for (uint i = 0; i < _candidateAddress.length; i++) {
             Candidates memory _newCandidate = Candidates(_candidateAddress[i], 0);
@@ -92,6 +91,9 @@ contract Dao {
         require(voteStage, "The voting has already settled.");
         voteStage = false;
 
+        // clean origin reviewer list
+        delete reviewerList;
+        
         // electAmount: the minimum tickets that need to have
         // if tickets > electAmount then push the candidate into review list
         for (uint i = 0; i < candidateNum; i++) {
