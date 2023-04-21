@@ -53,13 +53,13 @@ export const useWalletStore = defineStore("wallet", () => {
     }
   }
 
-  const getIDTBalance = async (IDTAddress: string):Promise<string> => {
-    if (!provider.value) return "0";
+  const getERC20Balance = async (tokenAddress: string):Promise<BigInt> => {
+    if (!provider.value) return BigInt(0);
     const ABIofIDT = require('../../../artifacts/contracts/IDTToken.sol/IDTToken.json')
-    const contract = new ethers.Contract(IDTAddress, ABIofIDT.abi, provider.value)
+    const contract = new ethers.Contract(tokenAddress, ABIofIDT.abi, provider.value)
     const balance = await contract.balanceOf(address.value)
-    return balance.toString();
+    return balance;
   }
 
-  return { address, provider, connect, getIDTBalance};
+  return { address, provider, connect, getERC20Balance};
 })

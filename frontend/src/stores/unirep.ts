@@ -6,7 +6,7 @@ import { Identity } from '@semaphore-protocol/identity'
 import { DB, IndexedDBConnector } from 'anondb/web'
 import { useWalletStore } from './wallet'
 
-export const unirepStore = defineStore("unirep", ()=>{
+export const useUnirepStore = defineStore("unirep", ()=>{
     const id = ref<Identity | null>(null);
     const userState = ref<UserState | null>(null)
     const walletStore = useWalletStore()
