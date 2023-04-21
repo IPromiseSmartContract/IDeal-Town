@@ -156,7 +156,6 @@ contract Project {
     }
 
     // register as a reviewer of this project
-    // one should submit a prove of their reputation is higher than threshold
     // if the prove is invalid, the transaction will be reverted
     function registerReviewer(
         uint256[] calldata signupPublicSignals,
