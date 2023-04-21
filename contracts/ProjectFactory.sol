@@ -10,11 +10,12 @@ contract ProjectFactory is Ownable {
     Unirep public unirep;
     IDTToken public idt;
     uint256 public count;
-    uint48 internal constant epochLength = 1000;
+    uint48 internal constant epochLength = 30;
     address[] public reviewers;
 
     event ProjectCreated(
         address indexed creator,
+        uint256 indexed projectId,
         address projectAddress,
         address tokenAddress
     );
@@ -55,7 +56,12 @@ contract ProjectFactory is Ownable {
             unirep
         );
         project.registerAttester(epochLength);
-        emit ProjectCreated(msg.sender, address(project), address(token));
+        emit ProjectCreated(
+            msg.sender,
+            count,
+            address(project),
+            address(token)
+        );
     }
 
     function updateReviewers(
