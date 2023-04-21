@@ -10,6 +10,7 @@ import 'primevue/resources/primevue.min.css' // core
 import 'primeicons/primeicons.css' //icons
 import 'primeflex/primeflex.css'
 import ToastService from 'primevue/toastservice';
+import DialogService from 'primevue/dialogservice';
 
 import './assets/main.css'
 import Ripple from 'primevue/ripple';
@@ -20,6 +21,7 @@ app.use(ToastService);
 app.use(createPinia())
 app.use(router)
 app.use(PrimeVue, { ripple: true })
+app.use(DialogService);
 
 app.directive('ripple', Ripple);
 

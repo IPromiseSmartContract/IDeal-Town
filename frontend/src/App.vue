@@ -6,7 +6,7 @@ import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import { provide, ref } from 'vue'
 import { useWalletStore } from './stores/wallet'
-import MetaMaskSvg from "@/components/icons/MetaMask.vue"
+import MetaMaskSvg from '@/components/icons/MetaMask.vue'
 const showLoginOpt = ref(false)
 const walletStore = useWalletStore()
 function toggleLogin(): void {
@@ -34,11 +34,14 @@ const handleConnect = () => {
     </main>
     <Dialog v-model:visible="showLoginOpt" header="Connect wallet" modal :style="{ width: '30vw' }">
         <div class="flex flex-column card-container gap-4">
-            <Button class="wallet-btn p-3 flex align-items-center justify-content-center gap-2" @click="handleConnect"> 
-                <MetaMaskSvg  />
+            <Button
+                class="wallet-btn p-3 flex align-items-center justify-content-center gap-2"
+                @click="handleConnect"
+            >
+                <MetaMaskSvg />
                 MetaMask
             </Button>
-            <Button class="wallet-btn p-3  flex align-items-center justify-content-center" disabled>
+            <Button class="wallet-btn p-3 flex align-items-center justify-content-center" disabled>
                 TT Wallet
             </Button>
         </div>
@@ -46,6 +49,9 @@ const handleConnect = () => {
 </template>
 
 <style scoped>
+::v-deep(.p-component) {
+    font-family: 'Rubik', sans-serif;
+}
 .wallet-btn {
     background-color: rgba(70, 58, 58, 0.8);
     border: 0;
