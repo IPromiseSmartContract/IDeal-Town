@@ -1,12 +1,6 @@
-import * as fs from "fs/promises";
-import axios from 'axios';
-import { readFile } from "fs/promises";
-import dotenv from 'dotenv';
-dotenv.config();
-
 const host = "https://api.poap.tech"
-const apiKey = process.env.API_KEY || '';
-const authToken = process.env.AUTHTOKEN || '';
+const apiKey = import.meta.env.VITE_API_KEY || '';
+const authToken = import.meta.env.AUTHTOKEN || '';
 
 export interface FetchDropsInput {
     limit: number;
@@ -33,7 +27,7 @@ export interface CreateDropsInput {
     expiry_date: string;
     event_url: string;
     virtual_event: boolean;
-    image: Blob;
+    image: string;
     filename: string;
     contentType: string;
     secret_code: string;
@@ -75,7 +69,7 @@ export interface CreateDropInput {
     expiry_date: string;
     event_url: string;
     virtual_event: boolean;
-    image: Blob;
+    image: string;
     filename: string;
     contentType: string;
     secret_code: string;
@@ -109,16 +103,17 @@ export interface DropResponse {
     };
 }
 
-async function createDrop(input: CreateDropInput) {
+export async function createDrop(input: CreateDropInput) {
     const form = new FormData();
     for (const key in input) {
         if (Object.prototype.hasOwnProperty.call(input, key)) {
-            if (key === 'image') {
-                form.append("image", input.image, input.filename);
+            // if (key === 'image') {
+            //     form.append("image", input.image, input.filename);
 
-            } else {
-                form.append(key, (input[key] as string) + '');
-            }
+            // } else {
+            //     form.append(key, (input[key] as string) + '');
+            // }
+            form.append(key, (input[key] as string) + '');
         }
     }
     return fetch(`${host}/events`, {
@@ -136,7 +131,7 @@ interface eventQRHashInput {
     secrect_code: string;
 }
 
-async function getEventQRCode(input: eventQRHashInput): Promise<Response> {
+export async function getEventQRCode(input: eventQRHashInput): Promise<Response> {
 
     const options = {
         method: 'POST',
@@ -159,7 +154,7 @@ interface claimInput {
     QRCode: string
 }
 
-async function claimNFT(input: claimInput): Promise<Response> {
+export async function claimNFT(input: claimInput): Promise<Response> {
     const options = {
         method: 'POST',
         headers: {
@@ -224,30 +219,59 @@ async function scanAddressByEvent(input: scanAddressByEventInput): Promise<Respo
     return fetch(`${host}/actions/scan/${input.address}/${input.event_id}`, options)
 }
 
-const main = async () => {
-    // const input: CreateDropsInput = {
-    //     name: 'Test1 ' + toPOAPdate(today),
-    //     description: 'Description',
-    //     city: 'Buenos Aires',
-    //     country: 'Argentina',
-    //     start_date: toPOAPdate(today),
-    //     end_date: toPOAPdate(oneMonthFromToday),
-    //     expiry_date: toPOAPdate(twoMonthsFromToday),
-    //     event_url: 'https://poap.xyz/',
-    //     virtual_event: true,
-    //     secret_code: '123456',
-    //     image: new Blob([await readFile("./src/assets/poap.png")], {
-    //         type: "image/png"
-    //     }),
-    //     filename: 'file.png',
-    //     contentType: 'image/png',
-    //     event_template_id: 1,
-    //     email: 'rodrigo@poap.io',
-    //     requested_codes: 10,
-    //     private_event: true,
-    // };
+function getImageName(url: string) {
+    const lastIndex = url.lastIndexOf("/");
+    return url.substring(lastIndex + 1);
+}
 
-    // const response = await createDrop(input)
+
+async function url2base64(url: string) {
+    const img = await fetch(url)
+    const binary = await img.blob()
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(binary);
+        reader.onloadend = () => {
+            const base64data = reader.result as string;
+            if (!base64data) {
+                reject("unable to read")
+                return
+            }
+            const filename = getImageName(url) || "image.png";
+            const base64WithFilename = base64data.replace(/^data:(.*;base64,)?/, `data:image/png;name=${filename};base64,`);
+            resolve(base64WithFilename);
+        }
+    });
+}
+
+export async function createEvent(): Promise<Response> {
+    const input: CreateDropsInput = {
+        name: 'Test2 ' + toPOAPdate(today),
+        description: 'Description',
+        city: 'Taipei',
+        country: 'Taiwan',
+        start_date: toPOAPdate(today),
+        end_date: toPOAPdate(oneMonthFromToday),
+        expiry_date: toPOAPdate(twoMonthsFromToday),
+        event_url: 'https://poap.xyz/',
+        virtual_event: true,
+        secret_code: '123456',
+        image: (await url2base64('https://www.adobe.com/tw/express/feature/image/media_16ad2258cac6171d66942b13b8cd4839f0b6be6f3.png')) as string,
+        filename: 'poap.png',
+        contentType: 'image/png',
+        event_template_id: 1,
+        email: 'rodrigo@poap.io',
+        requested_codes: 10,
+        private_event: true,
+    };
+
+    return createDrop(input)
+}
+
+const main = async () => {
+
+    const response = await createEvent()
+    console.log(response.json())
 
     // const input: eventQRHashInput = {
     //     event_id: '123656',
@@ -281,7 +305,7 @@ const main = async () => {
     // }
     // const response = await scanEventPOAP(input)
 
-    return response.json()
+    // return response.json()
 
 }
 main().then(data => {
