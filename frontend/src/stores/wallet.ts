@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { ethers } from 'ethers'
-import { getNetworkParams, Networks } from '@/utils/networks'
+import { getNetworkParams } from '@/utils/networks'
 
 export const useWalletStore = defineStore("wallet", () => {
   const address = ref("");
@@ -53,5 +53,13 @@ export const useWalletStore = defineStore("wallet", () => {
     }
   }
 
-  return { address, provider, connect };
+  const getIDTBalance = async (IDTAddress: string):Promise<string> => {
+    if (!provider.value) return "0";
+    const ABIofIDT = require('../../../artifacts/contracts/IDTToken.sol/IDTToken.json')
+    const contract = new ethers.Contract(IDTAddress, ABIofIDT.abi, provider.value)
+    const balance = await contract.balanceOf(address.value)
+    return balance.toString();
+  }
+
+  return { address, provider, connect, getIDTBalance};
 })
