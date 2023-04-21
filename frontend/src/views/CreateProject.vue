@@ -53,7 +53,6 @@ const storeOnDAOContract = (url: string): Promise<any> => {
  * @param storeOnContractFunc The function to use for storing the URL on a smart contract.
  */
 const handlePublish = () => {
-    console.error('44444444444')
     const fileObjs: FileObject[] = []
     files.value?.forEach(async (file) => {
         fileObjs.push({
@@ -61,31 +60,16 @@ const handlePublish = () => {
             text: await file.text()
         })
     })
-    console.log('55555555555')
+    fileObjs.push({
+        filename: 'README.md',
+        text: text.value
+    })
     // Zip the text content and files
-    zipTextAndFiles(text.value, fileObjs)
+    zipTextAndFiles(fileObjs)
         .then((blob) => {
-            console.log('8888888888888888888888888')
-            unzipFiles(blob)
-                .then((fileObjs) => {
-                    console.log('-----------------------')
-                    console.log(fileObjs)
-                    console.log('-----------------------')
-                })
-                .catch((error: Error) => {
-                    // Handle any errors that occur when uploading the text content to IPFS
-                    toast.add({
-                        severity: 'error',
-                        summary: 'Failed',
-                        detail: `Error uploading file: ${error}`,
-                        life: 5000
-                    })
-                })
             uploadToIPFS(blob)
                 .then((url: string) => {
-                    console.log('@#########################################')
                     console.log(blob)
-                    console.log('@#########################################')
                     // Log the uploaded URL to the console
                     toast.add({
                         severity: 'info',

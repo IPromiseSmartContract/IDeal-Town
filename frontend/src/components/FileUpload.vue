@@ -1,6 +1,5 @@
 <template>
     <div class="card mt-5">
-        <Toast />
         <FileUpload name="demo[]" accept="" :maxFileSize="1000000" @select="onSelectedFiles">
             <template #header="{ chooseCallback, clearCallback, files }">
                 <div class="flex flex-wrap justify-content-between align-items-center flex-1 gap-2">

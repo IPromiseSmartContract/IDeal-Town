@@ -5,13 +5,15 @@ export interface FileObject {
     text: string
 }
 
-export async function zipTextAndFiles(text: string, files: FileObject[]): Promise<Blob> {
+export async function zipTextAndFiles(files: FileObject[]): Promise<Blob> {
     const zip = new JSZip()
-    zip.file('README.md', text)
     files.forEach(({ filename, text }) => {
-        zip.file(filename, text)
+        const blob = new Blob([text], { type: 'text/plain' })
+        zip.file(filename, blob)
     })
     const content = await zip.generateAsync({ type: 'blob' })
+    const contentText = await content.text()
+    console.log(contentText)
     return content
 }
 export async function unzipFiles(zipFile: Blob): Promise<FileObject[]> {
