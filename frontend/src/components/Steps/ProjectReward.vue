@@ -48,20 +48,46 @@ async function claimReward() {
 }
 </script>
 <template>
-    <Card>
-        <template #title> Reward </template>
-        <template #content>
-            <p>Now, your reward in this project is {{ amountOfReward }} IDT tokens.</p>
-        </template>
-    </Card>
-    <br /><br />
-    <div class="card flex justify-content-center">
-        <Button label="Claim Your Reward !" @click="claimReward" />
+    <div class="p-title flex flex-column gap-4 mt-5 p-2 mx-1">
+        <h4 class="ml-2">Rewards</h4>
     </div>
-    <br />
-    <div class="card flex justify-content-center">
-        <InlineMessage severity="info">
-            After you claim reward, reward will send to your connected wallet !
-        </InlineMessage>
+    <div class="p-body flex flex-column mt-0 p-2 mx-1 align-items-center gap-3">
+        <h4 class="text-xl">
+            Now, your reward in this project is {{ amountOfReward }} IDT tokens.
+        </h4>
+
+        <Button
+            size="small"
+            class="p-btn shadow-3 flex justify-content-center mb-2"
+            @click="claimReward"
+        >
+            Claim Your Reward !
+        </Button>
     </div>
 </template>
+
+<style scoped>
+.p-title {
+    border: 2px solid rgb(70, 58, 58);
+    color: rgb(59, 48, 48);
+    font-size: x-large;
+    font-family: 'Rubik', sans-serif;
+}
+.p-body {
+    border: 1px solid rgb(70, 58, 58);
+    border-top: 0px;
+}
+.p-btn {
+    background-color: rgb(238, 188, 99);
+    color: rgb(70, 58, 58);
+    border: 0px;
+    width: 15rem;
+    font-family: 'Allerta Stencil';
+}
+.p-btn:hover {
+    background-color: rgb(70, 58, 58) !important;
+    color: rgb(238, 188, 99) !important;
+    border: 0px !important;
+    font-family: 'Allerta Stencil';
+}
+</style>
