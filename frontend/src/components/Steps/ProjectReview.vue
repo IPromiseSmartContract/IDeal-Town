@@ -5,6 +5,7 @@ import SelectButton from 'primevue/selectbutton'
 import Button from 'primevue/button'
 import { getStatusStyle } from '@/utils/style'
 import MdView from '@/components/MdView.vue'
+import { genEpochKey } from '@unirep/utils'
 import Card from 'primevue/card'
 import { useToast } from 'primevue/usetoast'
 import { Project__factory } from '@/contracts'
@@ -77,16 +78,34 @@ const sendReviewTx = async () => {
         '0xeDa93bDc08c6Ff2e67F8Bc4123eb4a5275E8FDaa',
         wallet.signer!
     )
+    const unirep_ = Unirep__factory.connect(
+        import.meta.env.VITE_UNIREP_ADDRESS as string,
+        wallet.signer!
+    )
+    const epoch = await unirep_.attesterEpochLength('0xeda93bdc08c6ff2e67f8bc4123eb4a5275e8fdaa')
+    const epochKey = genEpochKey(
+        unirep.id?.secret!,
+        unirep.userState?.sync.attesterId!,
+        epoch.toBigInt(),
+        0
+    )
 
-    project.registerReviewer()
-    const voteTxns = solutions.map((solution) => {
-        return project.populateTransaction.review()
+    const proof = await unirep.userState!.genUserSignUpProof()
+    project.registerReviewer(proof?.publicSignals, proof?.proof)
+
+    const reviewTxns = solutions.map((solution) => {
+        return project.populateTransaction.review(
+            epochKey,
+            epoch.toBigInt(),
+            solution.review.value === 'Up' ? 0 : 1,
+            10
+        )
     })
     const batchTxn = new ethers.Contract(
         '0xeDa93bDc08c6Ff2e67F8Bc4123eb4a5275E8FDaa',
         '',
         wallet.signer
-    ).batch(voteTxns)
+    ).batch(reviewTxns)
     await batchTxn.execute()
 }
 const handleSubmit = () => {
@@ -108,9 +127,6 @@ const handleSubmit = () => {
             })
         })
 }
-onMounted(async () => {
-    await generateSolutions()
-})
 
 const totalGoodSolution = computed(() => {
     return solutions.reduce((sum, solution) => {
@@ -139,9 +155,7 @@ const totalGoodSolution = computed(() => {
             <h4 class="ml-2">Review</h4>
             <h4><span class="text-xs">Good</span> {{ totalGoodSolution }}</h4>
             <h4><span class="text-xs">Bad</span> {{ solutions.length - totalGoodSolution }}</h4>
-            <Button size="small" class="p-btn shadow-3" @click="handleSubmit(sendVoteTx)"
-                >Confirm</Button
-            >
+            <Button size="small" class="p-btn shadow-3" @click="handleSubmit">Confirm</Button>
         </div>
         <div class="p-body mt-0 p-2 mx-1 flex flex-column gap-3">
             <div v-for="solution in solutions" :key="solution.id" class="grid">
