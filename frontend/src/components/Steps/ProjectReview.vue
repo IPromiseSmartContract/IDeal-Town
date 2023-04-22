@@ -7,9 +7,14 @@ import { getStatusStyle } from '@/utils/style'
 import MdView from '@/components/MdView.vue'
 import Card from 'primevue/card'
 import { useToast } from 'primevue/usetoast'
-
+import { Project__factory } from '@/contracts'
+import { useWalletStore } from '@/stores/wallet'
+import { ethers } from 'ethers'
+import { Unirep__factory } from '@unirep/contracts/typechain'
+import { useUnirepStore } from '@/stores/unirep'
 const toast = useToast()
-
+const wallet = useWalletStore()
+const unirep = useUnirepStore()
 const project = reactive({
     name: 'Project name',
     mdContent: `
@@ -38,10 +43,7 @@ The project aims to create a comprehensive software platform that can be used to
     status: 'active',
     currentIpj: 1000
 })
-const wallet = reactive({
-    idt: 120,
-    ipj: 200
-})
+
 interface ISolution {
     id: number
     name: string
@@ -57,32 +59,54 @@ const options = ref<Option[]>([
     { icon: 'pi pi-thumbs-up-fill', value: 'Up' },
     { icon: 'pi pi-thumbs-down-fill', value: 'Down' }
 ])
-const getOption = (review: 'Up' | 'Down'): Option => {
-    const option = options.value.find((opt) => opt.value === review)
-    return option || { icon: 'pi pi-thumbs-up-fill', value: 'Up' }
-}
+// const getOption = (review: 'Up' | 'Down'): Option => {
+//     const option = options.value.find((opt) => opt.value === review)
+//     return option || { icon: 'pi pi-thumbs-up-fill', value: 'Up' }
+// }
 const solutions = reactive<ISolution[]>([])
-const generateSolutions = async () => {
-    for (let i = 1; i <= 20; i++) {
-        const solution: ISolution = {
-            id: i,
-            name: `Solution ${i}`,
-            link: `https://ipfs.io/ipfs/${Math.floor(Math.random() * 1000000).toString(16)}`,
-            voteIpj: 0,
-            review: getOption('Up')
-        }
-        solutions.push(solution)
+
+const sendReviewTx = async () => {
+    // const projectABI = require('../../../../artifacts/contracts/Project.sol/Project.json')
+    if (!wallet.isConnected) {
+        await wallet.connect()
     }
-}
-const sendVoteTx = () => {}
-const handleSubmit = (afterSubmitFunc: Function) => {
-    toast.add({
-        severity: 'success',
-        summary: 'Submit',
-        detail: 'review',
-        life: 5000
+    if (!unirep.isConnected) {
+        await unirep.connect('0xeda93bdc08c6ff2e67f8bc4123eb4a5275e8fdaa')
+    }
+    const project = Project__factory.connect(
+        '0xeDa93bDc08c6Ff2e67F8Bc4123eb4a5275E8FDaa',
+        wallet.signer!
+    )
+
+    project.registerReviewer()
+    const voteTxns = solutions.map((solution) => {
+        return project.populateTransaction.review()
     })
-    afterSubmitFunc()
+    const batchTxn = new ethers.Contract(
+        '0xeDa93bDc08c6Ff2e67F8Bc4123eb4a5275E8FDaa',
+        '',
+        wallet.signer
+    ).batch(voteTxns)
+    await batchTxn.execute()
+}
+const handleSubmit = () => {
+    sendReviewTx()
+        .then(() => {
+            toast.add({
+                severity: 'success',
+                summary: 'Submit',
+                detail: 'vote',
+                life: 5000
+            })
+        })
+        .catch(() => {
+            toast.add({
+                severity: 'error',
+                summary: 'Submit',
+                detail: 'vote contract failed',
+                life: 5000
+            })
+        })
 }
 onMounted(async () => {
     await generateSolutions()

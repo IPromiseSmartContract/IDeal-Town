@@ -7,7 +7,10 @@ import { getStatusStyle } from '@/utils/style'
 import MdView from '@/components/MdView.vue'
 import Card from 'primevue/card'
 import { useToast } from 'primevue/usetoast'
-
+import { useWalletStore } from '@/stores/wallet'
+import { Project__factory } from '@/contracts'
+import { BigNumber, ethers } from 'ethers'
+const wallet = useWalletStore()
 const toast = useToast()
 
 const project = reactive({
@@ -38,58 +41,89 @@ The project aims to create a comprehensive software platform that can be used to
     status: 'active',
     currentIpj: 1000
 })
-const wallet = reactive({
-    idt: 120,
-    ipj: 200
-})
+
 interface ISolution {
-    id: number
-    name: string
-    link: string
-    voteIpj: number
+    id: BigNumber
+    author: string
+    url: string
+    voteIpjRatio: number
 }
 const solutions = reactive<ISolution[]>([])
-const generateSolutions = async () => {
-    for (let i = 1; i <= 20; i++) {
-        const project: ISolution = {
-            id: i,
-            name: `Solution ${i}`,
-            link: `https://ipfs.io/ipfs/${Math.floor(Math.random() * 1000000).toString(16)}`,
-            voteIpj: 0
-        }
-        solutions.push(project)
+onMounted(async () => {
+    if (!wallet.isConnected) {
+        await wallet.connect()
+    }
+    const project = Project__factory.connect(
+        '0xeDa93bDc08c6Ff2e67F8Bc4123eb4a5275E8FDaa',
+        wallet.signer!
+    )
+    // Collect all solution event to get all id
+    const events = await project.queryFilter(project.filters.URLSubmitted())
+    events.forEach(async (event) => {
+        const _solution = await project.solutions(event.args.solutionId)
+        solutions.push({
+            id: event.args.solutionId,
+            author: _solution.author,
+            url: _solution.url,
+            voteIpjRatio: 0
+        })
+    })
+})
+
+const sendVoteTx = async () => {
+    // const projectABI = require('../../../../artifacts/contracts/Project.sol/Project.json')
+    if (!wallet.isConnected) {
+        await wallet.connect()
+        const project = Project__factory.connect(
+            '0xeDa93bDc08c6Ff2e67F8Bc4123eb4a5275E8FDaa',
+            wallet.signer!
+        )
+        const voteTxns = solutions.map((solution) => {
+            return project.populateTransaction.voteForSolution(solution.id, solution.voteIpjRatio)
+        })
+        const batchTxn = new ethers.Contract(
+            '0xeDa93bDc08c6Ff2e67F8Bc4123eb4a5275E8FDaa',
+            '',
+            wallet.signer
+        ).batch(voteTxns)
+        await batchTxn.execute()
     }
 }
-const sendVoteTx = () => {}
-const handleSubmit = (afterSubmitFunc: Function) => {
-    if (!checkEnoughIpj(totalVotedIpj.value)) {
+const handleSubmit = () => {
+    if (!checkEnoughIpj(totalVotedIpjRatio.value)) {
         toast.add({
             severity: 'error',
             summary: 'Submit',
-            detail: 'Not enough Ipj to vote',
+            detail: 'Exceed voting coda',
             life: 5000
         })
     } else {
-        toast.add({
-            severity: 'success',
-            summary: 'Submit',
-            detail: 'vote',
-            life: 5000
-        })
-        afterSubmitFunc()
+        sendVoteTx()
+            .then(() => {
+                toast.add({
+                    severity: 'success',
+                    summary: 'Submit',
+                    detail: 'vote',
+                    life: 5000
+                })
+            })
+            .catch(() => {
+                toast.add({
+                    severity: 'error',
+                    summary: 'Submit',
+                    detail: 'vote contract failed',
+                    life: 5000
+                })
+            })
     }
 }
-onMounted(async () => {
-    await generateSolutions()
-})
-const totalVotedIpj = computed(() => {
-    const votedIpj = solutions.reduce((sum, solution) => sum + solution.voteIpj, 0)
+
+const totalVotedIpjRatio = computed(() => {
+    const votedIpj = solutions.reduce((sum, solution) => sum + solution.voteIpjRatio, 0)
     return votedIpj
 })
-const checkEnoughIpj = (votedIpj: number) => {
-    console.log(votedIpj, wallet.ipj)
-
-    return votedIpj < wallet.ipj
+const checkEnoughIpj = (votedIpjRatio: number) => {
+    return votedIpjRatio < 100
 }
 </script>
 <template>
@@ -108,26 +142,22 @@ const checkEnoughIpj = (votedIpj: number) => {
         <div class="p-title grid mt-5 p-2 mx-1 align-items-center justify-content-between">
             <h4 class="ml-2">Vote</h4>
             <h4>
-                <span class="text-xs">Voted</span> {{ totalVotedIpj }}
-                <span class="text-xs">IPJ</span>
+                <span class="text-xs">Voted</span> {{ totalVotedIpjRatio }}
+                <span class="text-xs">%</span>
             </h4>
-            <h4>
-                <span class="text-xs">Total</span> {{ wallet.ipj }} <span class="text-xs">IPJ</span>
-            </h4>
-            <Button size="small" class="p-btn shadow-3" @click="handleSubmit(sendVoteTx)"
-                >Confirm</Button
-            >
+            <h4><span class="text-xs">Total</span> {{ 100 }} <span class="text-xs">%</span></h4>
+            <Button size="small" class="p-btn shadow-3" @click="handleSubmit">Confirm</Button>
         </div>
         <div class="p-body mt-0 p-2 mx-1 flex flex-column gap-3">
-            <div v-for="solution in solutions" :key="solution.id" class="grid">
+            <div v-for="solution in solutions" class="grid">
                 <div class="col-12 md:col-8">
                     <Card
                         class="border-round justify-content-center w-full shadow-2 hover:shadow-8"
                         style="background-color: inherit"
                     >
                         <template #header> </template>
-                        <template #title> {{ solution.name }} </template>
-                        <template #subtitle> </template>
+                        <template #title> {{ solution.id }} </template>
+                        <template #subtitle>{{ solution.author }} </template>
                         <template #content>
                             <p>
                                 Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore
@@ -149,10 +179,12 @@ const checkEnoughIpj = (votedIpj: number) => {
                 </div>
                 <div class="col-12 md:col-4 flex justify-content-center align-items-center">
                     <InputNumber
-                        v-model="solution.voteIpj"
-                        :class="{ 'p-invalid': checkEnoughIpj(solution.voteIpj) }"
+                        class="ml-3"
+                        v-model="solution.voteIpjRatio"
+                        :class="{ 'p-invalid': checkEnoughIpj(solution.voteIpjRatio) }"
                         :useGrouping="false"
                     />
+                    <span class="text-xl mx-3">%</span>
                 </div>
             </div>
         </div>
