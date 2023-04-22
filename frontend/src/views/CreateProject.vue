@@ -6,6 +6,10 @@ import { uploadToIPFS } from '@/utils/ipfs'
 import { zipTextAndFiles, unzipFiles, type FileObject } from '@/utils/helper'
 import { useToast } from 'primevue/usetoast'
 import FileUpload from '@/components/FileUpload.vue'
+import { useWalletStore } from '@/stores/wallet'
+import { ProjectFactory__factory } from '@/contracts'
+import { URLSubmittedEvent } from "@/contracts/Project"
+import { BigNumber } from 'ethers'
 const toast = useToast()
 /**
  * Proposal to upload (README.md)
@@ -38,14 +42,33 @@ The project aims to create a comprehensive software platform that can be used to
  * - 檔案路徑: file[i].name
  */
 const files = ref<File[]>([])
+
+const walletStore = useWalletStore()
 /**
  * Stores the given URL on a DAO contract.
  * @param url The URL to store on the DAO contract.
  * @returns A Promise that resolves when the URL has been stored on the DAO contract.
  */
-const storeOnDAOContract = (url: string): Promise<any> => {
-    //TODO: Implementation details for storing the URL on a DAO contract go here @skyline9981
-    return Promise.resolve()
+const storeOnProjectContract = async (name: string, expiration: BigNumber, threshold: BigNumber, url: string): Promise<any> => {
+    if (!walletStore.isConnected){
+        await walletStore.connect()
+    }
+    const factoryAddress = import.meta.env.VITE_PROJECT_FACTORY_ADDRESS
+    const factoryContract = ProjectFactory__factory.connect(factoryAddress, walletStore.signer!)
+    const tx = await factoryContract.createProject(
+        name,
+        expiration,
+        threshold,
+        url
+    )
+    const receipt = await tx.wait()
+    const event = receipt.events?.[0] as URLSubmittedEvent | undefined
+    if(!event){
+        toast.add({ severity: 'error', summary: 'Failed to store URL', detail: 'URL could not be stored on the DAO contract.', life: 5000 })
+        return
+    }
+    toast.add({ severity:'success', summary: 'URL stored on the DAO contract', detail: `Tx: ${tx.hash}`, life: 3000 })
+    return 
 }
 /**
  * Uploads the given text content to IPFS and stores the resulting URL on a smart contract using the specified function.
@@ -77,8 +100,18 @@ const handlePublish = () => {
                         detail: `File uploaded: ${url} (url)`,
                         life: 5000
                     })
-                    if (storeOnDAOContract) {
-                        storeOnDAOContract(url).catch((error: Error) => {
+                    if (storeOnProjectContract) {
+                        // @jacky
+                        storeOnProjectContract("PJNAME",BigNumber.from("0"),BigNumber.from("0"),url)
+                        .then(v=>{
+                            toast.add({
+                                severity: 'success',
+                                summary: 'Upload successfully',
+                                detail: `Tx: `,
+                                life: 5000
+                            })
+                        })
+                        .catch((error: Error) => {
                             // Handle any errors that occur when storing the URL on a smart contract
                             console.error('Error storing file on chain:', error)
                             toast.add({
