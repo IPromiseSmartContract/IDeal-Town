@@ -1,10 +1,11 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { UserState, schema, Synchronizer, } from '@unirep/core'
-import { defaultProver } from '@unirep/circuits/provers/defaultProver'
+// import { defaultProver } from '@unirep/circuits/provers/defaultProver'
 import { Identity } from '@semaphore-protocol/identity'
-import { DB, IndexedDBConnector } from 'anondb/web'
+// import { DB, IndexedDBConnector } from 'anondb/web'
 import { useWalletStore } from './wallet'
+import prover from './prover'
 
 export const useUnirepStore = defineStore("unirep", ()=>{
     const id = ref<Identity | null>(null);
@@ -13,11 +14,11 @@ export const useUnirepStore = defineStore("unirep", ()=>{
     const unirepAddress = import.meta.env.VITE_UNIREP_ADDRESS as string
     const connect = async (projectAddress: string) => {
         const _id = new Identity();
-        const _db:DB = await IndexedDBConnector.create(schema)
+        // const _db:DB = await IndexedDBConnector.create(schema)
         const _synchronizer = new Synchronizer({
-            db: _db,
+            // db: _db,
             attesterId: BigInt(projectAddress),
-            prover: defaultProver,
+            prover: prover as any,
             unirepAddress: unirepAddress,
             provider: walletStore.provider as any,
         })
