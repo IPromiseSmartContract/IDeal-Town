@@ -10,11 +10,10 @@ import { useRouter } from 'vue-router'
 import { getStatusStyle } from '@/utils/style'
 
 import { useWalletStore } from '@/stores/wallet'
-import { Project__factory, ProjectFactory__factory } from "@/contracts"
-import type { Project } from "@/contracts/Project"
+import { ProjectFactory__factory } from "@/contracts"
 import type { ProjectCreatedEvent } from "@/contracts/ProjectFactory"
 import type { ProjectFactory } from '@/contracts'
-import { id } from 'ethers/lib/utils'
+import Skeleton from 'primevue/skeleton';
 
 const toast = useToast()
 const router = useRouter()
@@ -28,6 +27,7 @@ interface IProject {
     status: string
     address: string
 }
+const isLoading = ref(true)
 const projects = reactive<IProject[]>([])
 const getProjects = async () => {
     if(!walletStore.isConnected){
@@ -35,6 +35,7 @@ const getProjects = async () => {
     }
     factory = ProjectFactory__factory.connect(factoryAddress, walletStore.provider!)
     const events: ProjectCreatedEvent[] = await factory.queryFilter(factory.filters.ProjectCreated())
+    isLoading.value = false;
     const statusList = ['completed', 'active', 'inactive']
 
     for (const event of events) {
@@ -86,7 +87,16 @@ const items = ref([
 
 <template>
     <main>
-        <div class="card">
+        <div class="card" v-if="isLoading">
+            <div class="flex flex-wrap justify-content-center card-container gap-6">
+                <Skeleton 
+                    class="h-28rem flex border-round justify-content-center w-full lg:w-3 md:w-5 sm:w-full shadow-2 hover:shadow-8"
+                    v-for="index in 12"
+                    :key="`Skeleton-${index}`">
+                </Skeleton>
+            </div>
+        </div>
+        <div class="card" v-else>
             <div class="flex flex-wrap justify-content-center card-container gap-6">
                 <Card
                     class="flex border-round justify-content-center w-full lg:w-3 md:w-5 sm:w-full shadow-2 hover:shadow-8"
