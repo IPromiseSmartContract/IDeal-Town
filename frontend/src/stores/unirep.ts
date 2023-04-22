@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { UserState, schema,Synchronizer, } from '@unirep/core'
+import { UserState, schema, Synchronizer, } from '@unirep/core'
 import { defaultProver } from '@unirep/circuits/provers/defaultProver'
 import { Identity } from '@semaphore-protocol/identity'
 import { DB, IndexedDBConnector } from 'anondb/web'
@@ -23,19 +23,11 @@ export const useUnirepStore = defineStore("unirep", ()=>{
         })
         await _synchronizer.start()
         await _synchronizer.waitForSync()
-        const _userState = new UserState(_synchronizer,_id)
+        const _userState = new UserState(_synchronizer, _id)
         id.value = _id
         userState.value = _userState 
     }
     const isConnected = computed(() =>!!id.value &&!!userState.value)
-
-    const registerDeveloper = async () => {
-        if(!isConnected){
-            alert("Please use unirepStore.connect before registering")
-            return
-        }
-        const proof = await userState.value?.genUserSignUpProof()
-    }
-
+ 
     return { id, userState, connect, isConnected }
 })

@@ -12,6 +12,7 @@ export default defineConfig({
     }
   },
   define: {
-    global: {}
+    global: {},
+    process: {browser: true},
   }
 })
