@@ -10,13 +10,13 @@ CORS(app)
 @app.route('/createEvent', methods=['POST'])
 def event():
     url = "https://api.poap.tech/events"
-    randomNum = random.randint(10,100)
+    randomNum = random.randint(10,1000)
     files = {"image": ("poap.png", open("poap.png", "rb"), "image/png")}
     payload = {
         "virtual_event": "false",
         "event_template_id": "1",
         "private_event": "false",
-        "name": f"testing{randomNum}",
+        "name": f"testing#{randomNum}",
         "description": "example",
         "city": "Taipei",
         "country": "Taiwan",
