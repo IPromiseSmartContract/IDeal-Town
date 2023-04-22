@@ -67,10 +67,10 @@ const handleSolve = () => {
     })
 }
 
-const projectContract = Project__factory.connect("0xA6a6B093e646824FfCC8D41D80d569Eb91165e8a",walletStore.signer!)
+const projectContract = Project__factory.connect("0x2619Ad9e7ebd60C87b7b785F2f13ee49B2Bd0089",walletStore.signer!)
 const handleRegister = async () => {
     if(!unirepStore.isConnected){
-        await unirepStore.connect("0xA6a6B093e646824FfCC8D41D80d569Eb91165e8a")
+        await unirepStore.connect("0x2619Ad9e7ebd60C87b7b785F2f13ee49B2Bd0089")
     }
     await unirepStore.userState!.genUserSignUpProof()
     .then(async signupProof1 => {
@@ -83,9 +83,9 @@ const handleRegister = async () => {
     })
 }
 
-const handleverify = async () => {
+const handleVerify = async () => {
     if(!unirepStore.isConnected){
-        await unirepStore.connect("0xA6a6B093e646824FfCC8D41D80d569Eb91165e8a")
+        await unirepStore.connect("0x2619Ad9e7ebd60C87b7b785F2f13ee49B2Bd0089")
     }
     await unirepStore.userState!.genUserSignUpProof()
     .then(async signupProof1 => {
@@ -146,7 +146,7 @@ function checkIdentity() {
         </div>
     </div>
     <div v-else class="flex flex-column p-6">
-        <div v-if="identity == 2">
+        <div v-if="identity === 2">
             <DynamicDialog />
             <div class="card">
                 <div class="p-title grid">
@@ -224,9 +224,9 @@ function checkIdentity() {
                 </div>
             </div>
         </div>
-        <div v-else-if="identity == 1">
+        <div v-else-if="identity === 1">
             <div class="card flex justify-content-center">
-                <Button label="Verify" class="p-btn shadow-3" @click="handleverify" />
+                <Button label="Verify" class="p-btn shadow-3" @click="handleVerify" />
             </div>
             <br />
             <div class="card flex justify-content-center">
