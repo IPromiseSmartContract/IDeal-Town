@@ -61,7 +61,7 @@ npx hardhat verify --network <network> <address> <constructor>
 
 ```shell
 UniRep deployed to: 0xCa61bFcA0107c5952f8bf59f4D510d111cbcE146
-IDTToken deployed to: 0xeCe4d9311d986764Fe0ae1C5eCF4e9b676F9a3d2 | initialSupply: 100000000000000000000000
-Dao deployed to: 0x54F126bbD1cec61a0F84f85ceE139E1f5c9e562C | idtToken: 0xeCe4d9311d986764Fe0ae1C5eCF4e9b676F9a3d2
-ProjectFactory deployed to: 0xb59a59752508dB19771F73F8c1a44aC41dF09ca5
+IDTToken deployed to: 0xA2E0FD3c343910bd7D1E4af74b0B76Ded048d032 | initialSupply: 100000000000000000000000
+Dao deployed to: 0x13bBf70e8AdC0F11c99D8C9787Aa18dab55815b5 | idtToken: 0xA2E0FD3c343910bd7D1E4af74b0B76Ded048d032
+ProjectFactory deployed to: 0x93d2f7d05609Ff1b91871D94ED9dc04150772d07
 ```
