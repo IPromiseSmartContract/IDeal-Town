@@ -54,3 +54,14 @@ npx hardhat run scripts/deploy.ts --network <network>
 ```shell
 npx hardhat verify --network <network> <address> <constructor>
 ```
+
+## Deployment
+
+## Sepolia
+
+```shell
+UniRep deployed to: 0xCa61bFcA0107c5952f8bf59f4D510d111cbcE146
+IDTToken deployed to: 0xeCe4d9311d986764Fe0ae1C5eCF4e9b676F9a3d2 | initialSupply: 100000000000000000000000
+Dao deployed to: 0x54F126bbD1cec61a0F84f85ceE139E1f5c9e562C | idtToken: 0xeCe4d9311d986764Fe0ae1C5eCF4e9b676F9a3d2
+ProjectFactory deployed to: 0xb59a59752508dB19771F73F8c1a44aC41dF09ca5
+```

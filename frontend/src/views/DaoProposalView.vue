@@ -1,11 +1,19 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import MdEditor from '@/components/MdEditor.vue'
 import Button from 'primevue/button'
 import { uploadToIPFS } from '@/utils/ipfs'
 import { useToast } from 'primevue/usetoast'
 import router from '@/router'
-import { ethers } from 'ethers'
+import { useWalletStore } from '@/stores/wallet'
+import {Dao__factory} from "@/contracts"
+import type {URLSubmittedEvent} from "@/contracts/Dao"
+
+const isLoading = ref(false)
+const walletStore = useWalletStore()
+const daoContract = Dao__factory.connect(import.meta.env.VITE_DAO_ADDRESS, walletStore.signer!)
+
+
 const toast = useToast()
 const text = ref(`
 # Proposal
@@ -31,7 +39,6 @@ The project aims to create a comprehensive software platform that can be used to
 `)
 
 
-
 /**
  * Stores the given URL on a DAO contract.
  * @param url The URL to store on the DAO contract.
@@ -39,16 +46,9 @@ The project aims to create a comprehensive software platform that can be used to
  */
 const storeOnDAOContract = async (url: string): Promise<any> => {
   //TODO: Implementation details for storing the URL on a DAO contract go here @skyline9981
-  const contractAddress = '0x...'; // replace with the address of your DAO contract
-  const abi = { /* replace with the ABI of your DAO contract */ };
-  const ethereum = global?.window?.ethereum as any;
-  const provider = new ethers.BrowserProvider(ethereum)
-  const signer = await provider.getSigner();
-
-  const daoContract = new ethers.Contract(contractAddress, abi, signer);
-
-  await daoContract.pushToProposalList(url);
-  return Promise.resolve()
+  const tx = await daoContract.submitURL(url)
+  await tx.wait()
+  return 
 }
 
 /**
@@ -57,6 +57,7 @@ const storeOnDAOContract = async (url: string): Promise<any> => {
  * @param storeOnContractFunc The function to use for storing the URL on a smart contract.
  */
 const handlePublish = (text: string, afterUploadHook: (url: string) => Promise<any>) => {
+  isLoading.value = true
   // Upload the text content to IPFS, and get the resulting URL
   uploadToIPFS(text)
     .then((url: string) => {
@@ -88,15 +89,18 @@ const handlePublish = (text: string, afterUploadHook: (url: string) => Promise<a
         life: 5000
       })
     })
+    .finally(() => {
+      isLoading.value = false
+    })
 }
 </script>
 
 <template>
   <MdEditor v-model="text"></MdEditor>
   <div class="flex justify-content-center py-6 gap-6">
-    <Button text class="btn shadow-3 text-black-alpha-90 bg-yellow-300 text-l hover:bg-yellow-900 hover:text-yellow-300"
-      @click="handlePublish(text, storeOnDAOContract)">Publish</Button>
-    <Button text class="btn shadow-3 text-black-alpha-90 hover:surface-700 text-l surface-500 hover:text-50"
+    <Button type="button" class="btn shadow-3 text-black-alpha-90 bg-yellow-300 text-l hover:bg-yellow-900 hover:text-yellow-300"
+      @click="handlePublish(text, storeOnDAOContract)" :loading="isLoading" icon="pi pi-search">Publish</Button>
+    <Button type="button" class="btn shadow-3 text-black-alpha-90 hover:surface-700 text-l surface-500 hover:text-50"
       @click="router.push('/')">Cancel</Button>
   </div>
 </template>
