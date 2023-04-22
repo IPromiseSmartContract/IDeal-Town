@@ -16,6 +16,8 @@ import DynamicDialog from 'primevue/dynamicdialog'
 import { useDialog } from 'primevue/usedialog'
 import { ref } from 'vue'
 import { URLSubmittedEvent } from '@/contracts/Project.sol/Project'
+import router from '@/router'
+import { useRoute, useRouter } from 'vue-router'
 //const toast = useToast()
 const CreateSolution = defineAsyncComponent(() => import('@/views/CreateSolution.vue'))
 const unirepStore = useUnirepStore()
@@ -59,7 +61,6 @@ const ipjRatio = computed(() => {
     return (wallet.ipj / project.currentIpj) * 100
 })
 const dialog = useDialog()
-
 const handleSolve = () => {
     dialog.open(CreateSolution, {
         props: {
@@ -69,19 +70,19 @@ const handleSolve = () => {
             onDeliver: (url: string) => {
                 // The 'on' prefix and same emit name are required.
                 submitURL(url)
+                router.push(`project/${route.params.address}`)
             }
         }
     })
 }
+const route = useRoute()
 
 const projectContract = Project__factory.connect(
-    '0x2619Ad9e7ebd60C87b7b785F2f13ee49B2Bd0089',
+    route.params.address as string,
     walletStore.signer!
 )
 const handleRegister = async () => {
-    if (!unirepStore.isConnected) {
-        await unirepStore.connect('0x2619Ad9e7ebd60C87b7b785F2f13ee49B2Bd0089')
-    }
+    await unirepStore.connect(route.params.address as string)
     await unirepStore
         .userState!.genUserSignUpProof()
         .then(async (signupProof1) => {
@@ -100,7 +101,7 @@ const handleRegister = async () => {
 
 const handleVerify = async () => {
     if (!unirepStore.isConnected) {
-        await unirepStore.connect('0x2619Ad9e7ebd60C87b7b785F2f13ee49B2Bd0089')
+        await unirepStore.connect(route.params.address as string)
     }
     await unirepStore
         .userState!.genUserSignUpProof()
@@ -251,7 +252,7 @@ function checkIdentity() {
             <br />
             <div class="card flex justify-content-center">
                 <InlineMessage severity="info" class="text-3xl"
-                    >ou have to verify you acoount on unirep !</InlineMessage
+                    >you have to verify your account on unirep !</InlineMessage
                 >
             </div>
         </div>
