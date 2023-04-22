@@ -67,46 +67,42 @@ const handleSolve = () => {
     })
 }
 
-const projectContract = Project__factory.connect("0xb94AC6f84689A1BFc60CCFB640FF27AC147BAadf",walletStore.signer!)
+const projectContract = Project__factory.connect("0xA6a6B093e646824FfCC8D41D80d569Eb91165e8a",walletStore.signer!)
 const handleRegister = async () => {
     if(!unirepStore.isConnected){
-        await unirepStore.connect("0xb94AC6f84689A1BFc60CCFB640FF27AC147BAadf")
+        await unirepStore.connect("0xA6a6B093e646824FfCC8D41D80d569Eb91165e8a")
     }
-    const signupProof1  = await unirepStore.userState!.genUserSignUpProof()
-    projectContract.registerDeveloper(signupProof1?.publicSignals,signupProof1?.proof)
-    const identityNumber = (await projectContract.developers(walletStore.address))
-    identity.value = identityNumber
+    await unirepStore.userState!.genUserSignUpProof()
+    .then(async signupProof1 => {
+        return await projectContract.registerDeveloper(signupProof1?.publicSignals,signupProof1?.proof)
+    }).then(async tx => {
+        isloading.value = true
+        await tx.wait()
+        isloading.value = false
+        identityCheck()
+    })
 }
 
 const handleverify = async () => {
     if(!unirepStore.isConnected){
-        await unirepStore.connect("0xb94AC6f84689A1BFc60CCFB640FF27AC147BAadf")
+        await unirepStore.connect("0xA6a6B093e646824FfCC8D41D80d569Eb91165e8a")
     }
-    const signupProof1  = await unirepStore.userState!.genUserSignUpProof()
-    const identityNumber = (await projectContract.developers(walletStore.address))
-    projectContract.verifyDeveloper(signupProof1?.publicSignals,signupProof1?.proof)
-    identity.value = identityNumber
-    //identity.value = 2
+    await unirepStore.userState!.genUserSignUpProof()
+    .then(async signupProof1 => {
+        return await projectContract.verifyDeveloper(signupProof1?.publicSignals,signupProof1?.proof)
+    }).then(async tx => {
+        isloading.value = true
+        await tx.wait()
+        isloading.value = false
+        identityCheck()
+    })
 }
 const identityCheck = async () => {
     if (!walletStore.isConnected) {
         walletStore.connect()
     }
-    //console.log('walletStore.address',walletStore.address)
-    const identityNumber = (await projectContract.developers(walletStore.address))
-    //console.log('identityNumber',identityNumber)
-    if (identityNumber == 2)
-    {
-        identity.value = identityNumber
-    }
-    else if(identityNumber == 1)
-    {
-        identity.value = identityNumber
-    }
-    else
-    {
-        identity.value = identityNumber
-    }
+    identity.value = (await projectContract.developers(walletStore.address))
+    console.log(identity.value)
     isCheck.value = false
 }
 const submitURL = async (url: string): Promise<any> => {
@@ -251,7 +247,10 @@ function checkIdentity() {
             </div>
         </div>
     </div>
-                       
+    <div  v-if="isloading" class="loader">
+        <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="8" fill="var(--surface-ground)"
+        animationDuration="1.5s" aria-label="Custom ProgressSpinner" />
+    </div>         
 </template>
 <style scoped>
 .loader {
