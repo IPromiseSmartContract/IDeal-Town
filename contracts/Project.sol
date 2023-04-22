@@ -71,10 +71,10 @@ contract Project {
         _;
     }
 
-    event URLSubmitted(address indexed submitter, string url);
-    event Voted(address indexed voter, uint256 proposalIndex);
-    event Reviewed(address indexed reveiwer, uint256 proposalIndex);
-    event RewardClaimed(address indexed sender, uint256 proposalIndex);
+    event URLSubmitted(address indexed submitter, string url, uint256 solutionId);
+    event Voted(address indexed voter, uint256 solutionIndex);
+    event Reviewed(address indexed reveiwer, uint256 solutionIndex);
+    event RewardClaimed(address indexed sender, uint256 amount);
 
     constructor(
         string memory _name,
@@ -182,7 +182,7 @@ contract Project {
         string memory url
     ) external requireStage(Stages.Open) onlyDeveloper {
         solutions.push(Payload(msg.sender, url));
-        emit URLSubmitted(msg.sender, url);
+        emit URLSubmitted(msg.sender, url, solutions.length);
     }
 
     // proposer vote for their favorite solution(s)
