@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { reactive, ref } from 'vue'
 import MdEditor from '@/components/MdEditor.vue'
 import Button from 'primevue/button'
 import { uploadToIPFS } from '@/utils/ipfs'
 import { zipTextAndFiles, unzipFiles, type FileObject } from '@/utils/helper'
 import { useToast } from 'primevue/usetoast'
+import InputText from 'primevue/inputtext'
 import FileUpload from '@/components/FileUpload.vue'
 import { useWalletStore } from '@/stores/wallet'
 import { ProjectFactory__factory } from '@/contracts'
-import { URLSubmittedEvent } from "@/contracts/Project"
+import { URLSubmittedEvent } from '@/contracts/Project'
 import { BigNumber } from 'ethers'
 const toast = useToast()
 /**
@@ -42,6 +43,13 @@ The project aims to create a comprehensive software platform that can be used to
  * - 檔案路徑: file[i].name
  */
 const files = ref<File[]>([])
+interface createForm {
+    name: string
+    expiration: BigNumber
+    threshold: BigNumber
+    url: string
+}
+const createForm = reactive<createForm>({} as createForm)
 
 const walletStore = useWalletStore()
 /**
@@ -49,26 +57,36 @@ const walletStore = useWalletStore()
  * @param url The URL to store on the DAO contract.
  * @returns A Promise that resolves when the URL has been stored on the DAO contract.
  */
-const storeOnProjectContract = async (name: string, expiration: BigNumber, threshold: BigNumber, url: string): Promise<any> => {
-    if (!walletStore.isConnected){
+const storeOnProjectContract = async (
+    name: string,
+    expiration: BigNumber,
+    threshold: BigNumber,
+    url: string
+): Promise<any> => {
+    if (!walletStore.isConnected) {
         await walletStore.connect()
     }
     const factoryAddress = import.meta.env.VITE_PROJECT_FACTORY_ADDRESS
     const factoryContract = ProjectFactory__factory.connect(factoryAddress, walletStore.signer!)
-    const tx = await factoryContract.createProject(
-        name,
-        expiration,
-        threshold,
-        url
-    )
+    const tx = await factoryContract.createProject(name, expiration, threshold, url)
     const receipt = await tx.wait()
     const event = receipt.events?.[0] as URLSubmittedEvent | undefined
-    if(!event){
-        toast.add({ severity: 'error', summary: 'Failed to store URL', detail: 'URL could not be stored on the DAO contract.', life: 5000 })
+    if (!event) {
+        toast.add({
+            severity: 'error',
+            summary: 'Failed to store URL',
+            detail: 'URL could not be stored on the DAO contract.',
+            life: 5000
+        })
         return
     }
-    toast.add({ severity:'success', summary: 'URL stored on the DAO contract', detail: `Tx: ${tx.hash}`, life: 3000 })
-    return 
+    toast.add({
+        severity: 'success',
+        summary: 'URL stored on the DAO contract',
+        detail: `Tx: ${tx.hash}`,
+        life: 3000
+    })
+    return
 }
 /**
  * Uploads the given text content to IPFS and stores the resulting URL on a smart contract using the specified function.
@@ -101,26 +119,30 @@ const handlePublish = () => {
                         life: 5000
                     })
                     if (storeOnProjectContract) {
-                        // @jacky
-                        storeOnProjectContract("PJNAME",BigNumber.from("0"),BigNumber.from("0"),url)
-                        .then(v=>{
-                            toast.add({
-                                severity: 'success',
-                                summary: 'Upload successfully',
-                                detail: `Tx: `,
-                                life: 5000
+                        storeOnProjectContract(
+                            createForm.name,
+                            BigNumber.from(createForm.expiration),
+                            BigNumber.from(createForm.threshold),
+                            createForm.url
+                        )
+                            .then((v) => {
+                                toast.add({
+                                    severity: 'success',
+                                    summary: 'Upload successfully',
+                                    detail: `Tx: `,
+                                    life: 5000
+                                })
                             })
-                        })
-                        .catch((error: Error) => {
-                            // Handle any errors that occur when storing the URL on a smart contract
-                            console.error('Error storing file on chain:', error)
-                            toast.add({
-                                severity: 'error',
-                                summary: 'Failed',
-                                detail: `Error storing file on chain: ${error}`,
-                                life: 5000
+                            .catch((error: Error) => {
+                                // Handle any errors that occur when storing the URL on a smart contract
+                                console.error('Error storing file on chain:', error)
+                                toast.add({
+                                    severity: 'error',
+                                    summary: 'Failed',
+                                    detail: `Error storing file on chain: ${error}`,
+                                    life: 5000
+                                })
                             })
-                        })
                     }
                 })
                 .catch((error: Error) => {
@@ -147,6 +169,22 @@ const handlePublish = () => {
 </script>
 
 <template>
+    <div class="card flex flex-column md:flex-row gap-3 my-4">
+        <div class="p-inputgroup flex-1">
+            <InputText class="p-input" v-model="createForm.name" placeholder="Name" />
+        </div>
+
+        <div class="p-inputgroup flex-1">
+            <InputText class="p-input" v-model="createForm.expiration" placeholder="Expiration" />
+        </div>
+
+        <div class="p-inputgroup flex-1">
+            <InputText class="p-input" v-model="createForm.threshold" placeholder="Threshold" />
+        </div>
+        <div class="p-inputgroup fleForm.url" text icon="pi pi-search" severity="success">
+            <InputText class="p-input" v-model="createForm.threshold" placeholder="Url" />
+        </div>
+    </div>
     <MdEditor v-model="text"></MdEditor>
     <FileUpload v-model="files"></FileUpload>
     <div class="flex justify-content-center py-6 gap-6">
@@ -164,4 +202,9 @@ const handlePublish = () => {
         </Button> -->
     </div>
 </template>
-<style scoped></style>
+<style scoped>
+.p-input {
+    background-color: inherit;
+    height: 3rem;
+}
+</style>

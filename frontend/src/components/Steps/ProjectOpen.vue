@@ -66,23 +66,25 @@ const handleSolve = () => {
     })
 }
 
-const projectContract = Project__factory.connect("0x460dCe5c50041bf53129449De99C9D6152B3E494",walletStore.signer!)
+const projectContract = Project__factory.connect("0xb94AC6f84689A1BFc60CCFB640FF27AC147BAadf",walletStore.signer!)
 const handleRegister = async () => {
     if(!unirepStore.isConnected){
-        await unirepStore.connect("0x460dCe5c50041bf53129449De99C9D6152B3E494")
+        await unirepStore.connect("0xb94AC6f84689A1BFc60CCFB640FF27AC147BAadf")
     }
     const signupProof1  = await unirepStore.userState!.genUserSignUpProof()
     projectContract.registerDeveloper(signupProof1?.publicSignals,signupProof1?.proof)
     identity.value = 1
+    //identity.value = 1
 }
 
 const handleverify = async () => {
     if(!unirepStore.isConnected){
-        await unirepStore.connect("0x460dCe5c50041bf53129449De99C9D6152B3E494")
+        await unirepStore.connect("0xb94AC6f84689A1BFc60CCFB640FF27AC147BAadf")
     }
     const signupProof1  = await unirepStore.userState!.genUserSignUpProof()
     projectContract.verifyDeveloper(signupProof1?.publicSignals,signupProof1?.proof)
     identity.value = 2
+    //identity.value = 2
 }
 const identityCheck = async () => {
     if (!walletStore.isConnected)
