@@ -43,7 +43,7 @@ contract Project {
 
     mapping(address => uint8) public developers; // developer register 1 is the register value, 2 is verified
     mapping(address => uint8) public reviewers; // reviewer register 1 is the initial value, 2 is registered
-    mapping(uint256 => uint256) public votes; // Store every proposalId's number of votes
+    mapping(address => uint256) public rewards; // developer address to rewards count
 
     modifier onlyProposer() {
         require(
@@ -72,9 +72,9 @@ contract Project {
     }
 
     event URLSubmitted(address indexed submitter, string url, uint256 solutionId);
-    event Voted(address indexed voter, uint256 solutionIndex);
+    event Voted(uint256 solutionId, address receiver, uint8 percent);
     event Reviewed(address indexed reveiwer, uint256 solutionIndex);
-    event RewardClaimed(address indexed sender, uint256 amount);
+    event RewardClaimed(address indexed receiver, uint256 amount);
 
     constructor(
         string memory _name,
@@ -196,9 +196,11 @@ contract Project {
             "Project: The percentage is over 100"
         );
         uint256 balance = idt.balanceOf(address(this));
-        votes[solutionId] += (percent * balance) / 100; // Add the votes from the Proposer to the proposalId.
+        address receiver = solutions[solutionId].author;
+        uint256 amount = (percent * balance) / 100;
+        rewards[receiver] += amount; // Add the votes from the Proposer to the proposalId.
         cumulatedPercentage += percent;
-        emit Voted(msg.sender, solutionId);
+        emit Voted(solutionId, receiver, percent);
     }
 
     // reviewers review the solution and send reputation by unirep
@@ -212,21 +214,16 @@ contract Project {
         unirep.attest(epochKey, targetEpoch, fieldIndex, val);
     }
 
-    // claim reward for the specific proposal Index
+    // claim reward for the specific developer address
     // the reward will issue to the author's address of the proposal
     // emit RewardClaimed event
-    function claimReward(
-        uint256 solutionId,
-        uint256[] calldata publicSignals,
-        uint256[8] calldata proof
-    ) external requireStage(Stages.Reward) onlyDeveloper {
-        Payload memory proposalStruct = solutions[solutionId];
-        address payable developerAddress = payable(proposalStruct.author);
+    function claimReward() external requireStage(Stages.Reward) onlyDeveloper {
+        require(rewards[msg.sender] > 0, "Insufficient balance");
         require(
-            idt.transfer(developerAddress, votes[solutionId]),
+            idt.transfer(msg.sender, rewards[msg.sender]),
             "Reward transfer failed"
         );
-        votes[solutionId] = 0;
-        userStateTransition(publicSignals, proof);
+        rewards[msg.sender] = 0;
+        emit RewardClaimed(msg.sender, rewards[msg.sender]);
     }
 }
