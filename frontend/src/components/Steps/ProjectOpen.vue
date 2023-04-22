@@ -14,7 +14,7 @@ import { Project__factory } from '@/contracts'
 import MdView from '@/components/MdView.vue'
 import DynamicDialog from 'primevue/dynamicdialog'
 import { useDialog } from 'primevue/usedialog'
-import {ref} from 'vue'
+import { ref } from 'vue'
 import { URLSubmittedEvent } from '@/contracts/Project.sol/Project'
 //const toast = useToast()
 const CreateProject = defineAsyncComponent(() => import('@/views/CreateProject.vue'))
@@ -66,90 +66,89 @@ const handleSolve = () => {
     })
 }
 
-const projectContract = Project__factory.connect("0xb94AC6f84689A1BFc60CCFB640FF27AC147BAadf",walletStore.signer!)
+const projectContract = Project__factory.connect(
+    '0xb94AC6f84689A1BFc60CCFB640FF27AC147BAadf',
+    walletStore.signer!
+)
 const handleRegister = async () => {
-    if(!unirepStore.isConnected){
-        await unirepStore.connect("0xb94AC6f84689A1BFc60CCFB640FF27AC147BAadf")
+    if (!unirepStore.isConnected) {
+        await unirepStore.connect('0xb94AC6f84689A1BFc60CCFB640FF27AC147BAadf')
     }
-    const signupProof1  = await unirepStore.userState!.genUserSignUpProof()
-    projectContract.registerDeveloper(signupProof1?.publicSignals,signupProof1?.proof)
+    const signupProof1 = await unirepStore.userState!.genUserSignUpProof()
+    projectContract.registerDeveloper(signupProof1?.publicSignals, signupProof1?.proof)
     identity.value = 1
     //identity.value = 1
 }
 
 const handleverify = async () => {
-    if(!unirepStore.isConnected){
-        await unirepStore.connect("0xb94AC6f84689A1BFc60CCFB640FF27AC147BAadf")
+    if (!unirepStore.isConnected) {
+        await unirepStore.connect('0xb94AC6f84689A1BFc60CCFB640FF27AC147BAadf')
     }
-    const signupProof1  = await unirepStore.userState!.genUserSignUpProof()
-    projectContract.verifyDeveloper(signupProof1?.publicSignals,signupProof1?.proof)
+    const signupProof1 = await unirepStore.userState!.genUserSignUpProof()
+    projectContract.verifyDeveloper(signupProof1?.publicSignals, signupProof1?.proof)
     identity.value = 2
     //identity.value = 2
 }
 const identityCheck = async () => {
-    if (!walletStore.isConnected)
-    {
+    if (!walletStore.isConnected) {
         walletStore.connect()
     }
-    console.log('walletStore.address',walletStore.address)
-    const identityNumber = (await projectContract.developers(walletStore.address))
-    console.log('identityNumber',identityNumber)
-    if (identityNumber == 2)
-    {
+    console.log('walletStore.address', walletStore.address)
+    const identityNumber = await projectContract.developers(walletStore.address)
+    console.log('identityNumber', identityNumber)
+    if (identityNumber == 2) {
         identity.value = 2
-    }
-    else if(identityNumber == 1)
-    {
+    } else if (identityNumber == 1) {
         identity.value = 1
-    }
-    else
-    {
+    } else {
         identity.value = 0
     }
     isCheck.value = false
 }
 const submitURL = async (url: string): Promise<any> => {
-  //TODO: Implementation details for storing the URL on a DAO contract go here @skyline9981
+    //TODO: Implementation details for storing the URL on a DAO contract go here @skyline9981
     const tx = await projectContract.submitURL(url)
     const receipt = await tx.wait()
     const event = receipt.events?.[0].args as URLSubmittedEvent | undefined
-    if(!event){
-        toast.add({ severity: 'error', summary: 'Failed to store URL', detail: 'URL could not be stored on the DAO contract.' })
+    if (!event) {
+        toast.add({
+            severity: 'error',
+            summary: 'Failed to store URL',
+            detail: 'URL could not be stored on the DAO contract.'
+        })
         return
     }
-    toast.add({ severity:'success', summary: 'URL stored on the DAO contract', detail: `Tx: ${tx.hash}` })
-    return 
+    toast.add({
+        severity: 'success',
+        summary: 'URL stored on the DAO contract',
+        detail: `Tx: ${tx.hash}`
+    })
+    return
 }
 
 //function is
 
-let identity =ref()
-let isCheck =ref(true)
-
+let identity = ref()
+let isCheck = ref(true)
 
 function checkIdentity() {
     identity.value = 0
 }
-
-
-
 </script>
 
 <template>
     <div v-if="isCheck">
         <br /><br /><br />
         <div class="card flex justify-content-center">
-            <Button label="Check your identity" @click="identityCheck"/>
+            <Button label="Check your identity" @click="identityCheck" />
         </div>
         <br />
         <div class="card flex justify-content-center">
-            <InlineMessage severity="info"
-                >Let's get starting !</InlineMessage
-            >
+            <InlineMessage severity="info">Let's get starting !</InlineMessage>
         </div>
-    </div> 
+    </div>
     <div v-else>
-        <div v-if="identity==2">
+        <div v-if="identity == 2">
             <DynamicDialog />
             <div class="card mx-4">
                 <div class="p-title grid mt-5 p-1 mx-1">
@@ -165,18 +164,25 @@ function checkIdentity() {
                 <div class="grid">
                     <!-- Solution -->
                     <div class="col-12 md:col-6">
-                        <div class="p-title grid mt-5 p-2 mx-1 align-items-center justify-content-between">
+                        <div
+                            class="p-title grid mt-5 p-2 mx-1 align-items-center justify-content-between"
+                        >
                             <h4>Solution</h4>
-                            <Button size="small" class="p-btn shadow-3" @click="handleSolve">Solve</Button>
+                            <Button size="small" class="p-btn shadow-3" @click="handleSolve"
+                                >Solve</Button
+                            >
                         </div>
-                        <div class="p-body grid mt-0 p-2 mx-1 align-items-center justify-content-center">
+                        <div
+                            class="p-body grid mt-0 p-2 mx-1 align-items-center justify-content-center"
+                        >
                             <h4 class="text-xl p-3">Submit your solution and get IDT!!</h4>
                         </div>
-                    
                     </div>
                     <!-- Register -->
                     <div class="col-12 md:col-6">
-                        <div class="p-title grid mt-5 p-2 mx-1 align-items-center justify-content-between">
+                        <div
+                            class="p-title grid mt-5 p-2 mx-1 align-items-center justify-content-between"
+                        >
                             <h4>My Position</h4>
                             <Button size="small" class="p-btn shadow-3">Connect</Button>
                         </div>
@@ -219,11 +225,11 @@ function checkIdentity() {
                     </div>
                 </div>
             </div>
-            </div>
-        <div v-else-if="identity==1">
+        </div>
+        <div v-else-if="identity == 1">
             <br /><br /><br />
             <div class="card flex justify-content-center">
-                <Button label="Verify" @click="handleverify"/>
+                <Button label="Verify" @click="handleverify" />
             </div>
             <br />
             <div class="card flex justify-content-center">
@@ -235,7 +241,7 @@ function checkIdentity() {
         <div v-else>
             <br /><br /><br />
             <div class="card flex justify-content-center">
-                <Button label="Register" @click="handleRegister"/>
+                <Button label="Register" @click="handleRegister" />
             </div>
             <br />
             <div class="card flex justify-content-center">
@@ -245,7 +251,6 @@ function checkIdentity() {
             </div>
         </div>
     </div>
-                       
 </template>
 <style scoped>
 ::v-deep(.p-component) {
