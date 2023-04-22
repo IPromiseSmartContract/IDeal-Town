@@ -16,6 +16,7 @@ contract ProjectFactory is Ownable {
     event ProjectCreated(
         address indexed creator,
         uint256 indexed projectId,
+        string projectName,
         address projectAddress,
         address tokenAddress
     );
@@ -59,6 +60,7 @@ contract ProjectFactory is Ownable {
         emit ProjectCreated(
             msg.sender,
             count,
+            name,
             address(project),
             address(token)
         );
