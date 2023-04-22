@@ -144,7 +144,7 @@ function checkIdentity() {
         <br />
         <div class="card flex justify-content-center">
             <InlineMessage severity="info"
-                >After you claim reward, POAP will send to your wallet !</InlineMessage
+                >Let's get starting !</InlineMessage
             >
         </div>
     </div> 
@@ -228,7 +228,7 @@ function checkIdentity() {
             <br />
             <div class="card flex justify-content-center">
                 <InlineMessage severity="info"
-                    >After you claim reward, POAP will send to your wallet !</InlineMessage
+                    >You have to verify you acoount on unirep !</InlineMessage
                 >
             </div>
         </div>
@@ -240,7 +240,7 @@ function checkIdentity() {
             <br />
             <div class="card flex justify-content-center">
                 <InlineMessage severity="info"
-                    >After you claim reward, POAP will send to your wallet !</InlineMessage
+                    >Before starting, you need to regist a unirep account first !</InlineMessage
                 >
             </div>
         </div>
