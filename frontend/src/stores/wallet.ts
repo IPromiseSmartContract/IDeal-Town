@@ -22,6 +22,10 @@ export const useWalletStore = defineStore("wallet", () => {
     return address.value!== "";
   })
 
+  const disconnect = () => {
+    address.value = "";
+  }
+
   function addAccountListener() {
     window.ethereum?.on('accountsChanged', function (accounts: any) {
       const addr = (accounts as string[])?.[0];
@@ -63,5 +67,5 @@ export const useWalletStore = defineStore("wallet", () => {
     }
   }
 
-  return { address, signer, provider, connect, isConnected};
+  return { address, signer, provider, connect, isConnected, disconnect};
 })

@@ -20,6 +20,10 @@ const handleConnect = () => {
     toggleLogin()
     walletStore.connect()
 }
+const handleDisconnect = () => {
+    walletStore.disconnect()
+    showLoginOpt.value = false;
+}
 </script>
 
 <template>
@@ -35,20 +39,29 @@ const handleConnect = () => {
     <Dialog v-model:visible="showLoginOpt" header="Connect wallet" modal :style="{ width: '30vw' }">
         <div class="flex flex-column card-container gap-4">
             <Button
-                class="wallet-btn p-3 flex align-items-center justify-content-center gap-2"
+                class="wallet-btn wallet-btn-brown p-3 flex align-items-center justify-content-center gap-2"
                 @click="handleConnect"
             >
                 <MetaMaskSvg />
                 MetaMask
             </Button>
             <Button
-                class="wallet-btn p-3 flex align-items-center justify-content-center gap-2"
+                class="wallet-btn wallet-btn-brown p-3 flex align-items-center justify-content-center gap-2"
                 @click=""
             >
                 Blocto
             </Button>
-            <Button class="wallet-btn p-3 flex align-items-center justify-content-center" disabled>
+            <Button 
+            class="wallet-btn wallet-btn-brown p-3 flex align-items-center justify-content-center" disabled>
                 TT Wallet
+            </Button>
+            <Button 
+            icon="pi pi-sign-out"
+            label="Logout"
+            class="wallet-btn wallet-btn-signout p-3 flex align-items-center justify-content-center"
+            :disabled="!walletStore.isConnected"
+            @click="handleDisconnect"
+            >
             </Button>
         </div>
     </Dialog>
@@ -58,6 +71,8 @@ const handleConnect = () => {
 ::v-deep(.p-component) {
     font-family: 'Rubik', sans-serif;
 }
+
+
 .wallet-btn {
     background-color: rgba(70, 58, 58, 0.8);
     border: 0;
