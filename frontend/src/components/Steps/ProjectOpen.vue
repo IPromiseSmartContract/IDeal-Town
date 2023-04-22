@@ -134,14 +134,16 @@ const submitURL = async (url: string): Promise<any> => {
         toast.add({
             severity: 'error',
             summary: 'Failed to store URL',
-            detail: 'URL could not be stored on the DAO contract.'
+            detail: 'URL could not be stored on the DAO contract.',
+            life: 5000
         })
         return
     }
     toast.add({
         severity: 'success',
         summary: 'URL stored on the DAO contract',
-        detail: `Tx: ${tx.hash}`
+        detail: `Tx: ${tx.hash}`,
+        life: 5000
     })
     return
 }
