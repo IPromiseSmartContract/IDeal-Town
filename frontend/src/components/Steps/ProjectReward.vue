@@ -51,7 +51,7 @@ async function claimReward() {
     <Card>
         <template #title> Reward </template>
         <template #content>
-            <p>Now, your reward in this project is {{ amountOfReward }}</p>
+            <p>Now, your reward in this project is {{ amountOfReward }} IDT tokens.</p>
         </template>
     </Card>
     <br /><br />
