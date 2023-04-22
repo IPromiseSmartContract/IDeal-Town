@@ -73,8 +73,8 @@ const handleRegister = async () => {
     }
     const signupProof1  = await unirepStore.userState!.genUserSignUpProof()
     projectContract.registerDeveloper(signupProof1?.publicSignals,signupProof1?.proof)
-    identity.value = 1
-    //identity.value = 1
+    const identityNumber = (await projectContract.developers(walletStore.address))
+    identity.value = identityNumber
 }
 
 const handleverify = async () => {
@@ -82,8 +82,9 @@ const handleverify = async () => {
         await unirepStore.connect("0xb94AC6f84689A1BFc60CCFB640FF27AC147BAadf")
     }
     const signupProof1  = await unirepStore.userState!.genUserSignUpProof()
+    const identityNumber = (await projectContract.developers(walletStore.address))
     projectContract.verifyDeveloper(signupProof1?.publicSignals,signupProof1?.proof)
-    identity.value = 2
+    identity.value = identityNumber
     //identity.value = 2
 }
 const identityCheck = async () => {
@@ -91,20 +92,20 @@ const identityCheck = async () => {
     {
         walletStore.connect()
     }
-    console.log('walletStore.address',walletStore.address)
+    //console.log('walletStore.address',walletStore.address)
     const identityNumber = (await projectContract.developers(walletStore.address))
-    console.log('identityNumber',identityNumber)
+    //console.log('identityNumber',identityNumber)
     if (identityNumber == 2)
     {
-        identity.value = 2
+        identity.value = identityNumber
     }
     else if(identityNumber == 1)
     {
-        identity.value = 1
+        identity.value = identityNumber
     }
     else
     {
-        identity.value = 0
+        identity.value = identityNumber
     }
     isCheck.value = false
 }
@@ -119,7 +120,7 @@ const submitURL = async (url: string): Promise<any> => {
     }
     toast.add({ severity:'success', summary: 'URL stored on the DAO contract', detail: `Tx: ${tx.hash}` })
     return 
-}
+    }
 
 //function is
 
@@ -136,23 +137,22 @@ function checkIdentity() {
 </script>
 
 <template>
-    <div v-if="isCheck">
-        <br /><br /><br />
+    <div v-if="isCheck" class="flex flex-column gap-4 p-6">
+    
         <div class="card flex justify-content-center">
-            <Button label="Check your identity" @click="identityCheck"/>
+            <Button label="Check your identity" class="p-btn shadow-3" @click="identityCheck"/>
         </div>
-        <br />
         <div class="card flex justify-content-center">
-            <InlineMessage severity="info"
-                >Let's get starting !</InlineMessage
+            <InlineMessage class="text-3xl" severity="info" 
+                >Let's get starting </InlineMessage
             >
         </div>
     </div> 
-    <div v-else>
+    <div v-else class="flex flex-column p-6">
         <div v-if="identity==2">
             <DynamicDialog />
-            <div class="card mx-4">
-                <div class="p-title grid mt-5 p-1 mx-1">
+            <div class="card ">
+                <div class="p-title grid ">
                     <div class="col-12 md:col-8 flex gap-3">
                         <h4>{{ project.name }}</h4>
                         <Tag :style="getStatusStyle(project.status)">{{ project.status }} </Tag>
@@ -221,25 +221,23 @@ function checkIdentity() {
             </div>
             </div>
         <div v-else-if="identity==1">
-            <br /><br /><br />
             <div class="card flex justify-content-center">
-                <Button label="Verify" @click="handleverify"/>
+                <Button label="Verify" class="p-btn shadow-3" @click="handleverify"/>
             </div>
             <br />
             <div class="card flex justify-content-center">
-                <InlineMessage severity="info"
-                    >You have to verify you acoount on unirep !</InlineMessage
+                <InlineMessage severity="info" class="text-3xl"
+                    >ou have to verify you acoount on unirep !</InlineMessage
                 >
             </div>
         </div>
         <div v-else>
-            <br /><br /><br />
             <div class="card flex justify-content-center">
-                <Button label="Register" @click="handleRegister"/>
+                <Button label="Register" class="p-btn shadow-3" @click="handleRegister"/>
             </div>
             <br />
             <div class="card flex justify-content-center">
-                <InlineMessage severity="info"
+                <InlineMessage severity="info" class="text-3xl"
                     >Before starting, you need to regist a unirep account first !</InlineMessage
                 >
             </div>
@@ -248,26 +246,6 @@ function checkIdentity() {
                        
 </template>
 <style scoped>
-::v-deep(.p-component) {
-    font-family: 'Rubik', sans-serif;
-}
-::v-deep(.p-inputgroup-addon) {
-    background-color: rgb(70, 58, 58);
-    color: rgb(238, 188, 99);
-}
-::v-deep(.p-inputnumber-input) {
-    background-color: inherit;
-}
-::v-deep(.p-progressbar-value) {
-    background-color: rgb(70, 58, 58) !important;
-}
-::v-deep(.p-progressbar) {
-    background-color: rgb(70, 58, 58, 0.4) !important;
-}
-::v-deep(.p-progressbar-label) {
-    color: rgb(238, 188, 99) !important;
-    font-size: small;
-}
 .p-title {
     border: 2px solid rgb(70, 58, 58);
     color: rgb(59, 48, 48);
@@ -282,6 +260,7 @@ function checkIdentity() {
     background-color: rgb(238, 188, 99);
     color: rgb(70, 58, 58);
     border: 0px;
+    width: 15rem;
     font-family: 'Allerta Stencil';
 }
 .p-btn:hover {
