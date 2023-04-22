@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
-import { computed, reactive } from 'vue'
+import { computed, defineAsyncComponent, reactive } from 'vue'
 import Tag from 'primevue/tag'
 import ProgressBar from 'primevue/progressbar'
 import Button from 'primevue/button'
 import InputNumber from 'primevue/inputnumber'
 import { getStatusStyle } from '@/utils/style'
 import MdView from '@/components/MdView.vue'
-const route = useRoute()
-const address = computed(() => route.params.address)
+import DynamicDialog from 'primevue/dynamicdialog'
+import { useDialog } from 'primevue/usedialog'
+const CreateProject = defineAsyncComponent(() => import('@/views/CreateProject.vue'))
+
 const wallet = reactive({
     idt: 120,
     ipj: 200
@@ -44,8 +45,17 @@ The project aims to create a comprehensive software platform that can be used to
 const ipjRatio = computed(() => {
     return (wallet.ipj / project.currentIpj) * 100
 })
+const dialog = useDialog()
+const handleSolve = () => {
+    dialog.open(CreateProject, {
+        props: {
+            modal: true
+        }
+    })
+}
 </script>
 <template>
+    <DynamicDialog />
     <div class="card mx-4">
         <div class="p-title grid mt-5 p-1 mx-1">
             <div class="col-12 md:col-8 flex gap-3">
@@ -62,9 +72,11 @@ const ipjRatio = computed(() => {
             <div class="col-12 md:col-6">
                 <div class="p-title grid mt-5 p-2 mx-1 align-items-center justify-content-between">
                     <h4>Solution</h4>
-                    <Button size="small" class="p-btn shadow-3">Solve</Button>
+                    <Button size="small" class="p-btn shadow-3" @click="handleSolve">Solve</Button>
                 </div>
-                <div class="p-body grid mt-0 p-2 mx-1"></div>
+                <div class="p-body grid mt-0 p-2 mx-1 align-items-center justify-content-center">
+                    <h4 class="text-xl p-3">Submit your solution and get IDT!!</h4>
+                </div>
             </div>
             <!-- Register -->
             <div class="col-12 md:col-6">
@@ -113,6 +125,9 @@ const ipjRatio = computed(() => {
     </div>
 </template>
 <style scoped>
+::v-deep(.p-component) {
+    font-family: 'Rubik', sans-serif;
+}
 ::v-deep(.p-inputgroup-addon) {
     background-color: rgb(70, 58, 58);
     color: rgb(238, 188, 99);
@@ -133,8 +148,8 @@ const ipjRatio = computed(() => {
 .p-title {
     border: 2px solid rgb(70, 58, 58);
     color: rgb(59, 48, 48);
-    font-size: large;
-    font-family: 'Allerta Stencil';
+    font-size: x-large;
+    font-family: 'Rubik', sans-serif;
 }
 .p-body {
     border: 1px solid rgb(70, 58, 58);

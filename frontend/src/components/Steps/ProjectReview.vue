@@ -1,18 +1,15 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
-import { computed, reactive } from 'vue'
+import { ref, computed, onMounted, reactive } from 'vue'
 import Tag from 'primevue/tag'
-import ProgressBar from 'primevue/progressbar'
+import SelectButton from 'primevue/selectbutton'
 import Button from 'primevue/button'
-import InputNumber from 'primevue/inputnumber'
 import { getStatusStyle } from '@/utils/style'
 import MdView from '@/components/MdView.vue'
-const route = useRoute()
-const address = computed(() => route.params.address)
-const wallet = reactive({
-    idt: 120,
-    ipj: 200
-})
+import Card from 'primevue/card'
+import { useToast } from 'primevue/usetoast'
+
+const toast = useToast()
+
 const project = reactive({
     name: 'Project name',
     mdContent: `
@@ -41,8 +38,64 @@ The project aims to create a comprehensive software platform that can be used to
     status: 'active',
     currentIpj: 1000
 })
-const ipjRatio = computed(() => {
-    return (wallet.ipj / project.currentIpj) * 100
+const wallet = reactive({
+    idt: 120,
+    ipj: 200
+})
+interface ISolution {
+    id: number
+    name: string
+    link: string
+    voteIpj: number
+    review: Option
+}
+interface Option {
+    icon: string
+    value: 'Up' | 'Down'
+}
+const options = ref<Option[]>([
+    { icon: 'pi pi-thumbs-up-fill', value: 'Up' },
+    { icon: 'pi pi-thumbs-down-fill', value: 'Down' }
+])
+const getOption = (review: 'Up' | 'Down'): Option => {
+    const option = options.value.find((opt) => opt.value === review)
+    return option || { icon: 'pi pi-thumbs-up-fill', value: 'Up' }
+}
+const solutions = reactive<ISolution[]>([])
+const generateSolutions = async () => {
+    for (let i = 1; i <= 20; i++) {
+        const solution: ISolution = {
+            id: i,
+            name: `Solution ${i}`,
+            link: `https://ipfs.io/ipfs/${Math.floor(Math.random() * 1000000).toString(16)}`,
+            voteIpj: 0,
+            review: getOption('Up')
+        }
+        solutions.push(solution)
+    }
+}
+const sendVoteTx = () => {}
+const handleSubmit = (afterSubmitFunc: Function) => {
+    toast.add({
+        severity: 'success',
+        summary: 'Submit',
+        detail: 'review',
+        life: 5000
+    })
+    afterSubmitFunc()
+}
+onMounted(async () => {
+    await generateSolutions()
+})
+
+const totalGoodSolution = computed(() => {
+    return solutions.reduce((sum, solution) => {
+        if (solution.review.value == 'Up') {
+            return sum + 1
+        } else {
+            return sum
+        }
+    }, 0)
 })
 </script>
 <template>
@@ -57,68 +110,80 @@ const ipjRatio = computed(() => {
         <div class="p-body grid mt-0 p-2 mx-1">
             <MdView v-model="project.mdContent"></MdView>
         </div>
-        <div class="grid">
-            <!-- Solution -->
-            <div class="col-12 md:col-6">
-                <div class="p-title grid mt-5 p-2 mx-1 align-items-center justify-content-between">
-                    <h4>Solution</h4>
-                    <Button size="small" class="p-btn shadow-3">Solve</Button>
-                </div>
-                <div class="p-body grid mt-0 p-2 mx-1"></div>
-            </div>
-            <!-- Register -->
-            <div class="col-12 md:col-6">
-                <div class="p-title grid mt-5 p-2 mx-1 align-items-center justify-content-between">
-                    <h4>My Position</h4>
-                    <Button size="small" class="p-btn shadow-3">Connect</Button>
-                </div>
-                <div class="p-body mt-0 p-2 mx-1 grid">
-                    <div class="col-12">
-                        <ProgressBar :value="ipjRatio"
-                            >{{ wallet.ipj }}/{{ project.currentIpj }}</ProgressBar
-                        >
-                    </div>
-                    <div class="col-12 md:col-6">
-                        <div
-                            class="flex p-6 flex-column align-items-center justify-content-center h-4rem"
-                        >
-                            <div class="text-xl">IPJ</div>
-                            <div class="font-bold text-5xl">{{ wallet.ipj }}</div>
-                        </div>
-                    </div>
-                    <div class="col-12 md:col-6">
-                        <div
-                            class="flex p-6 flex-column align-items-center justify-content-center h-4rem"
-                        >
-                            <div class="text-xl">IDT</div>
-                            <div class="font-bold text-5xl">{{ wallet.idt }}</div>
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <div
-                            class="flex flex-column align-items-center justify-content-center mt-5 gap-3"
-                        >
-                            <div class="p-inputgroup w-full">
-                                <span class="p-inputgroup-addon">
-                                    <i class="pi pi-bitcoin"></i>
-                                </span>
-                                <InputNumber placeholder="Price" />
+        <!-- Solution -->
+        <div class="p-title grid mt-5 p-2 mx-1 align-items-center justify-content-between">
+            <h4 class="ml-2">Review</h4>
+            <h4><span class="text-xs">Good</span> {{ totalGoodSolution }}</h4>
+            <h4><span class="text-xs">Bad</span> {{ solutions.length - totalGoodSolution }}</h4>
+            <Button size="small" class="p-btn shadow-3" @click="handleSubmit(sendVoteTx)"
+                >Confirm</Button
+            >
+        </div>
+        <div class="p-body mt-0 p-2 mx-1 flex flex-column gap-3">
+            <div v-for="solution in solutions" :key="solution.id" class="grid">
+                <div class="col-12 md:col-8">
+                    <Card
+                        class="border-round justify-content-center w-full shadow-2 hover:shadow-8"
+                        style="background-color: inherit"
+                    >
+                        <template #header> </template>
+                        <template #title> {{ solution.name }} </template>
+                        <template #subtitle> </template>
+                        <template #content>
+                            <p>
+                                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore
+                                sed consequuntur error repudiandae numquam deserunt quisquam
+                                repellat libero asperiores earum nam nobis, culpa ratione quam
+                                perferendis esse, cupiditate neque quas!
+                            </p>
+                        </template>
+                        <template #footer>
+                            <div class="flex justify-content-center card-container gap-4">
+                                <Button
+                                    icon="pi pi-times"
+                                    label="More"
+                                    style="background-color: rgba(70, 58, 58, 0.8)"
+                                />
                             </div>
-                            <Button size="small" class="p-btn shadow-3">Join</Button>
-                        </div>
-                    </div>
+                        </template>
+                    </Card>
+                </div>
+                <div class="col-12 md:col-4 flex justify-content-center align-items-center">
+                    <SelectButton
+                        v-model="solution.review"
+                        :options="options"
+                        optionLabel="value"
+                        dataKey="value"
+                        aria-labelledby="custom"
+                    >
+                        <template #option="slotProps">
+                            <i :class="slotProps.option.icon"></i>
+                        </template>
+                    </SelectButton>
                 </div>
             </div>
         </div>
     </div>
 </template>
 <style scoped>
+::v-deep(.p-component) {
+    font-family: 'Rubik', sans-serif;
+}
 ::v-deep(.p-inputgroup-addon) {
     background-color: rgb(70, 58, 58);
     color: rgb(238, 188, 99);
 }
-::v-deep(.p-inputnumber-input) {
+::v-deep(.p-selectbutton .p-button.p-highlight) {
     background-color: inherit;
+    background: rgb(238, 188, 99);
+    border: 0px;
+    color: rgb(70, 58, 58);
+}
+::v-deep(.p-selectbutton .p-button.p-highlight):hover {
+    background-color: inherit;
+    background: rgb(70, 58, 58);
+    border: 0px;
+    color: rgb(238, 188, 99);
 }
 ::v-deep(.p-progressbar-value) {
     background-color: rgb(70, 58, 58) !important;
@@ -133,8 +198,8 @@ const ipjRatio = computed(() => {
 .p-title {
     border: 2px solid rgb(70, 58, 58);
     color: rgb(59, 48, 48);
-    font-size: large;
-    font-family: 'Allerta Stencil';
+    font-size: x-large;
+    font-family: 'Rubik', sans-serif;
 }
 .p-body {
     border: 1px solid rgb(70, 58, 58);
@@ -151,5 +216,10 @@ const ipjRatio = computed(() => {
     color: rgb(238, 188, 99) !important;
     border: 0px !important;
     font-family: 'Allerta Stencil';
+}
+.v-sol {
+    height: 3rem;
+    width: 100%;
+    border: 1px solid;
 }
 </style>
