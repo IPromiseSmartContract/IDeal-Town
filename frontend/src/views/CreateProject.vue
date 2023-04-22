@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import MdEditor from '@/components/MdEditor.vue'
+import ProgressSpinner from 'primevue/progressspinner';
 import Button from 'primevue/button'
 import { uploadToIPFS } from '@/utils/ipfs'
 import { zipTextAndFiles, unzipFiles, type FileObject } from '@/utils/helper'
@@ -12,6 +13,7 @@ import { ProjectFactory__factory } from '@/contracts'
 import { URLSubmittedEvent } from '@/contracts/Project.sol/Project'
 import { BigNumber } from 'ethers'
 import router from '@/router'
+let isloading = ref(false)
 const toast = useToast()
 /**
  * Proposal to upload (README.md)
@@ -68,28 +70,20 @@ const storeOnProjectContract = async (
         await walletStore.connect()
     }
     const factoryAddress = import.meta.env.VITE_PROJECT_FACTORY_ADDRESS as string
-
+    
     const factoryContract = ProjectFactory__factory.connect(factoryAddress, walletStore.signer!)
-    const tx = await factoryContract.createProject(name, expiration, threshold, url)
-    const receipt = await tx.wait()
-    const event = receipt.events?.[0] as URLSubmittedEvent | undefined
-
-    if (!event) {
-        toast.add({
-            severity: 'error',
-            summary: 'Failed to store URL',
-            detail: 'URL could not be stored on the DAO contract.',
-            life: 5000
-        })
-        return ''
-    }
-    toast.add({
-        severity: 'success',
-        summary: 'URL stored on the DAO contract',
-        detail: `Tx: ${tx.hash}`,
-        life: 3000
+    return factoryContract.createProject(name, expiration, threshold, url)
+    .then(async tx => {
+        isloading.value = true
+        return await tx.wait()
     })
-    return event.address
+    .then(
+        receipt => {
+            const event = receipt.events?.[0] as URLSubmittedEvent | undefined
+            return event!.address
+        }
+    )
+    
 }
 /**
  * Uploads the given text content to IPFS and stores the resulting URL on a smart contract using the specified function.
@@ -121,6 +115,7 @@ const handlePublish = () => {
                         detail: `File uploaded: ${url} (url)`,
                         life: 5000
                     })
+                    console.log(0)
                     storeOnProjectContract(
                         createForm.name,
                         BigNumber.from(createForm.expiration),
@@ -200,9 +195,20 @@ const handlePublish = () => {
             @click="router.push('/')"
             >
         </Button> -->
+        <div  v-if="isloading" class="loader">
+        <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="8" fill="var(--surface-ground)"
+            animationDuration="1.5s" aria-label="Custom ProgressSpinner" />
+        </div>
     </div>
 </template>
 <style scoped>
+.loader {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+}
 .p-input {
     background-color: inherit;
     height: 3rem;
