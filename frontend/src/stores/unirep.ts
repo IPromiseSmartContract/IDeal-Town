@@ -10,8 +10,8 @@ export const useUnirepStore = defineStore("unirep", ()=>{
     const id = ref<Identity | null>(null);
     const userState = ref<UserState | null>(null)
     const walletStore = useWalletStore()
-
-    const connect = async (projectAddress: string, unirepAddress: string) => {
+    const unirepAddress = import.meta.env.VITE_UNIREP_ADDRESS as string
+    const connect = async (projectAddress: string) => {
         const _id = new Identity();
         const _db:DB = await IndexedDBConnector.create(schema)
         const _synchronizer = new Synchronizer({
