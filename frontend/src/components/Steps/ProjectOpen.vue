@@ -18,7 +18,7 @@ import {ref} from 'vue'
 import { URLSubmittedEvent } from '@/contracts/Project.sol/Project'
 //const toast = useToast()
 const CreateProject = defineAsyncComponent(() => import('@/views/CreateProject.vue'))
-//const unirepStore = useUnirepStore()
+const unirepStore = useUnirepStore()
 const walletStore = useWalletStore()
 walletStore.connect()
 const toast = useToast()
@@ -68,22 +68,20 @@ const handleSolve = () => {
 
 const projectContract = Project__factory.connect("0x460dCe5c50041bf53129449De99C9D6152B3E494",walletStore.signer!)
 const handleRegister = async () => {
-    // if(unirepStore.isConnected){
-    //     await unirepStore.connect("0x460dCe5c50041bf53129449De99C9D6152B3E494")
-    //     const signupProof1  = await unirepStore.userState!.genUserSignUpProof()
-    //     projectContract.registerDeveloper(signupProof1?.publicSignals,signupProof1?.proof)
-    //     identity.value = 1
-    // }
+    if(!unirepStore.isConnected){
+        await unirepStore.connect("0x460dCe5c50041bf53129449De99C9D6152B3E494")
+    }
+    const signupProof1  = await unirepStore.userState!.genUserSignUpProof()
+    projectContract.registerDeveloper(signupProof1?.publicSignals,signupProof1?.proof)
     identity.value = 1
 }
 
 const handleverify = async () => {
-    // if(unirepStore.isConnected){
-    //     await unirepStore.connect("0x460dCe5c50041bf53129449De99C9D6152B3E494")
-    //     const signupProof1  = await unirepStore.userState!.genUserSignUpProof()
-    //     projectContract.verifyDeveloper(signupProof1?.publicSignals,signupProof1?.proof)
-    //     identity.value = 2
-    // }
+    if(!unirepStore.isConnected){
+        await unirepStore.connect("0x460dCe5c50041bf53129449De99C9D6152B3E494")
+    }
+    const signupProof1  = await unirepStore.userState!.genUserSignUpProof()
+    projectContract.verifyDeveloper(signupProof1?.publicSignals,signupProof1?.proof)
     identity.value = 2
 }
 const identityCheck = async () => {

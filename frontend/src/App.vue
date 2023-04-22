@@ -45,7 +45,7 @@ const handleConnect = () => {
                 class="wallet-btn p-3 flex align-items-center justify-content-center gap-2"
                 @click=""
             >
-                Blockto
+                Blocto
             </Button>
             <Button class="wallet-btn p-3 flex align-items-center justify-content-center" disabled>
                 TT Wallet
