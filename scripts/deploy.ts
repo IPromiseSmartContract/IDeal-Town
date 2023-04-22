@@ -5,10 +5,6 @@ async function main() {
   const [signer] = await ethers.getSigners()
   console.log("Deploying contracts with the account:", signer.address)
   
-  // Deploy the Dao contract
-  const daoFactory = await ethers.getContractFactory("Dao");
-  const dao = await daoFactory.deploy(idt.address);
-  
   const unirep = await deployUnirep(signer)
   console.log("UniRep deployed to:", unirep.address)
 
@@ -17,6 +13,10 @@ async function main() {
   const idtToken = await IDTTokenFactory.connect(signer).deploy(IDTInitialSupply);
   await idtToken.deployed();
   console.log(`IDTToken deployed to: ${idtToken.address} | initialSupply: ${IDTInitialSupply}`);
+
+  // Deploy the Dao contract
+  const daoFactory = await ethers.getContractFactory("Dao");
+  const dao = await daoFactory.deploy(idtToken.address);
 
   const ProjectFactoryFactory = await ethers.getContractFactory("ProjectFactory");
   const projectFactory = await ProjectFactoryFactory.connect(signer).deploy(unirep.address, idtToken.address);
