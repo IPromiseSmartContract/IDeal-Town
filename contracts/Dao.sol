@@ -24,6 +24,8 @@ contract Dao {
         uint256 getAmount;
     }
     Candidates[] public candidates;
+
+    event URLSubmitted(address indexed submitter, string url);
     
     // tokenAddress: IDT Token address
     constructor(address _tokenAddress) {
@@ -109,5 +111,11 @@ contract Dao {
 
     function getReviewer() public view returns (address[] memory) {
         return reviewerList;
+    }
+
+    function submitURL (
+        string memory url
+    ) external{
+        emit URLSubmitted(msg.sender, url);
     }
 }

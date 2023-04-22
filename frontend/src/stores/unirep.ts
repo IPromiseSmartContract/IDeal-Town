@@ -28,5 +28,14 @@ export const useUnirepStore = defineStore("unirep", ()=>{
         userState.value = _userState 
     }
     const isConnected = computed(() =>!!id.value &&!!userState.value)
+
+    const registerDeveloper = async () => {
+        if(!isConnected){
+            alert("Please use unirepStore.connect before registering")
+            return
+        }
+        const proof = await userState.value?.genUserSignUpProof()
+    }
+
     return { id, userState, connect, isConnected }
 })

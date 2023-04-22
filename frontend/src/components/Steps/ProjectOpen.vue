@@ -5,6 +5,8 @@ import ProgressBar from 'primevue/progressbar'
 import Button from 'primevue/button'
 import InputNumber from 'primevue/inputnumber'
 import { getStatusStyle } from '@/utils/style'
+import { useWalletStore } from '@/stores/wallet'
+import { Dao__factory } from '@/contracts'
 import MdView from '@/components/MdView.vue'
 import DynamicDialog from 'primevue/dynamicdialog'
 import { useDialog } from 'primevue/usedialog'
@@ -54,6 +56,7 @@ const handleSolve = () => {
     })
 }
 </script>
+
 <template>
     <DynamicDialog />
     <div class="card mx-4">

@@ -64,7 +64,7 @@ const gnosisParams = {
  * @param network - The network for which to retrieve the parameters.
  * @returns The network parameters as an object. default is chiado.
  */
-export const getNetworkParams = (network: Networks = Networks.CHIADO) => {
+export const getNetworkParams = (network: Networks = Networks.SEPOLIA) => {
     switch (network) {
         case Networks.GOERLI:
             return goerliParams;
