@@ -46,11 +46,21 @@ async function getQRHash() {
         .then((resp) => {
             console.log(resp.data)
             QRhashResponse = resp.data
-            alert(resp.data)
+            toast.add({
+                severity: 'error',
+                summary: 'QR hash error',
+                detail: resp.data,
+                life: 5000
+            })
         })
         .catch((err) => {
             console.error(err)
-            alert('QRhash error !')
+            toast.add({
+                severity: 'error',
+                summary: 'QR hash error',
+                detail: resp.data,
+                life: 5000
+            })
         })
 }
 
