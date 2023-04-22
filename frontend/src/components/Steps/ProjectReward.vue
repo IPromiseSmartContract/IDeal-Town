@@ -56,12 +56,12 @@ async function claimReward() {
     </Card>
     <br /><br />
     <div class="card flex justify-content-center">
-        <Button label="Claim Reward !" @click="claimReward" />
+        <Button label="Claim Your Reward !" @click="claimReward" />
     </div>
     <br />
     <div class="card flex justify-content-center">
-        <InlineMessage severity="info"
-            >After you claim reward, reward will send to your wallet !</InlineMessage
-        >
+        <InlineMessage severity="info">
+            After you claim reward, reward will send to your connected wallet !
+        </InlineMessage>
     </div>
 </template>
