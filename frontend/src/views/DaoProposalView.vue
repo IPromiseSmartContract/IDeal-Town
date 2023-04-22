@@ -47,7 +47,13 @@ The project aims to create a comprehensive software platform that can be used to
 const storeOnDAOContract = async (url: string): Promise<any> => {
   //TODO: Implementation details for storing the URL on a DAO contract go here @skyline9981
   const tx = await daoContract.submitURL(url)
-  await tx.wait()
+  const receipt = await tx.wait()
+  const event = receipt.events?.[0].args as URLSubmittedEvent | undefined
+  if(!event){
+    toast.add({ severity: 'error', summary: 'Failed to store URL', detail: 'URL could not be stored on the DAO contract.' })
+    return
+  }
+  toast.add({ severity:'success', summary: 'URL stored on the DAO contract', detail: `Tx: ${tx.hash}` })
   return 
 }
 
@@ -98,10 +104,10 @@ const handlePublish = (text: string, afterUploadHook: (url: string) => Promise<a
 <template>
   <MdEditor v-model="text"></MdEditor>
   <div class="flex justify-content-center py-6 gap-6">
-    <Button type="button" class="btn shadow-3 text-black-alpha-90 bg-yellow-300 text-l hover:bg-yellow-900 hover:text-yellow-300"
-      @click="handlePublish(text, storeOnDAOContract)" :loading="isLoading" icon="pi pi-search">Publish</Button>
-    <Button type="button" class="btn shadow-3 text-black-alpha-90 hover:surface-700 text-l surface-500 hover:text-50"
-      @click="router.push('/')">Cancel</Button>
+    <Button text class="btn shadow-3 text-black-alpha-90 bg-yellow-300 text-l hover:bg-yellow-900 hover:text-yellow-300"
+      @click="handlePublish(text, storeOnDAOContract)" :loading="isLoading" icon="pi pi-search" label="Publish"></Button>
+    <Button text class="btn shadow-3 text-black-alpha-90 hover:surface-700 text-l surface-500 hover:text-50"
+      @click="router.push('/')" label="Cancel"></Button>
   </div>
 </template>
 <style scoped></style>
