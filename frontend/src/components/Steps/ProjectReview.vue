@@ -15,7 +15,7 @@ import { Unirep__factory } from '@unirep/contracts/typechain'
 import { useUnirepStore } from '@/stores/unirep'
 const toast = useToast()
 const wallet = useWalletStore()
-const unirep = useUnirepStore()
+//const unirep = useUnirepStore()
 const project = reactive({
     name: 'Project name',
     mdContent: `
