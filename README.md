@@ -24,6 +24,13 @@ cp .env.example .env
 cd frontend && yarn
 ```
 
+## Setup your frontend environment and run backend
+
+```shell
+cd backend && poetry install
+poetry run python server.py
+```
+
 ## Compile contract and run frontend
 
 ```shell
