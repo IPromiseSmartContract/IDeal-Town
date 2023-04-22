@@ -84,7 +84,13 @@ export interface DropResponse {
     start_date: string
     timezone: string
     private: boolean
-    created_date: string
+    expiry_date: string
+    end_date: string
+    event_template_id: number
+    event_url: string
+    from_admin: boolean
+    private_event: boolean
+    virtual_event: boolean
     attributes_aggregate: {
         aggregate: {
             count: number
