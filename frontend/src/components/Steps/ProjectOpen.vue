@@ -9,7 +9,7 @@ import { useWalletStore } from '@/stores/wallet'
 import { useUnirepStore } from '@/stores/unirep'
 import ProgressSpinner from 'primevue/progressspinner'
 import { useToast } from 'primevue/usetoast'
-import { Project__factory } from '@/contracts'
+import { IDTToken__factory, IPJToken__factory, Project__factory } from '@/contracts'
 import { inject } from 'vue'
 import MdView from '@/components/MdView.vue'
 import DynamicDialog from 'primevue/dynamicdialog'
@@ -18,6 +18,15 @@ import { ref } from 'vue'
 import { URLSubmittedEvent } from '@/contracts/Project.sol/Project'
 import router from '@/router'
 import { useRoute, useRouter } from 'vue-router'
+const route = useRoute()
+
+let identity = ref()
+let isCheck = ref(true)
+let currentIpj = ref(0)
+let currentIdt = ref(0)
+let inputIdt = ref(0)
+let poolIdt = ref(2048)
+
 //const toast = useToast()
 const CreateSolution = defineAsyncComponent(() => import('@/views/CreateSolution.vue'))
 const unirepStore = useUnirepStore()
@@ -25,10 +34,47 @@ const walletStore = useWalletStore()
 let isloading = ref(false)
 walletStore.connect()
 const toast = useToast()
-const wallet = reactive({
-    idt: 120,
-    ipj: 200
-})
+
+const projectContract = Project__factory.connect(
+    route.params.address as string,
+    walletStore.signer!
+)
+
+const getIpj = () => {
+    let ipj: number = 0
+    projectContract
+        .ipjtoken()
+        .then((address) => {
+            const ipjContract = IPJToken__factory.connect(address, walletStore.signer!)
+            ipjContract
+                .balanceOf(walletStore.address)
+                .then((ipjb) => {
+                    ipj = ipjb.toNumber()
+                })
+                .catch((err) => {
+                    console.log(err)
+                })
+        })
+        .catch((err) => {
+            console.log(err)
+        })
+    return ipj
+}
+const getIdt = () => {
+    let idt: number = 0
+    projectContract.idt().then((address) => {
+        const idtContract = IDTToken__factory.connect(address, walletStore.signer!)
+        idtContract
+            .balanceOf(route.params.address as string)
+            .then((ipjb) => {
+                idt = ipjb.toNumber()
+            })
+            .catch((err) => {
+                console.log(err)
+            })
+    })
+    return idt
+}
 const project = reactive({
     name: 'Project name',
     mdContent: `
@@ -58,7 +104,7 @@ The project aims to create a comprehensive software platform that can be used to
     currentIpj: 1000
 })
 const ipjRatio = computed(() => {
-    return (wallet.ipj / project.currentIpj) * 100
+    return (currentIpj.value / poolIdt.value) * 100
 })
 const dialog = useDialog()
 const handleSolve = () => {
@@ -75,12 +121,7 @@ const handleSolve = () => {
         }
     })
 }
-const route = useRoute()
 
-const projectContract = Project__factory.connect(
-    route.params.address as string,
-    walletStore.signer!
-)
 const handleRegister = async () => {
     await unirepStore.connect(route.params.address as string)
     await unirepStore
@@ -148,24 +189,29 @@ const submitURL = async (url: string): Promise<any> => {
     })
     return
 }
-
-//function is
-
-let identity = ref()
-let isCheck = ref(true)
-
-function checkIdentity() {
-    identity.value = 0
+const handleJoin = () => {
+    currentIdt.value -= inputIdt.value
+    currentIpj.value += inputIdt.value
 }
+const handleRefresh = () => {
+    currentIdt.value = 1012
+    currentIpj.value = 0
+}
+//function is
 </script>
 
 <template>
-    <div v-if="isCheck" class="flex flex-column gap-4 p-6">
+    <div v-if="isCheck" class="p-section flex flex-column gap-6 p-6">
         <div class="card flex justify-content-center">
-            <Button label="Check your identity" class="p-btn shadow-3" @click="identityCheck" />
+            <InlineMessage class="text-6xl" severity="info">Let's get starting </InlineMessage>
         </div>
         <div class="card flex justify-content-center">
-            <InlineMessage class="text-3xl" severity="info">Let's get starting </InlineMessage>
+            <Button
+                size="large"
+                label="Check your identity"
+                class="p-card shadow-3 text-3xl"
+                @click="identityCheck"
+            />
         </div>
     </div>
     <div v-else class="flex flex-column p-6">
@@ -205,12 +251,14 @@ function checkIdentity() {
                             class="p-title grid mt-5 p-2 mx-1 align-items-center justify-content-between"
                         >
                             <h4>My Position</h4>
-                            <Button size="small" class="p-btn shadow-3">Connect</Button>
+                            <Button size="small" class="p-btn shadow-3" @click="handleRefresh"
+                                >Refresh</Button
+                            >
                         </div>
                         <div class="p-body mt-0 p-2 mx-1 grid">
                             <div class="col-12">
                                 <ProgressBar :value="ipjRatio"
-                                    >{{ wallet.ipj }}/{{ project.currentIpj }}</ProgressBar
+                                    >{{ currentIpj }}/{{ poolIdt }}</ProgressBar
                                 >
                             </div>
                             <div class="col-12 md:col-6">
@@ -218,7 +266,7 @@ function checkIdentity() {
                                     class="flex p-6 flex-column align-items-center justify-content-center h-4rem"
                                 >
                                     <div class="text-xl">IPJ</div>
-                                    <div class="font-bold text-5xl">{{ wallet.ipj }}</div>
+                                    <div class="font-bold text-5xl">{{ currentIpj }}</div>
                                 </div>
                             </div>
                             <div class="col-12 md:col-6">
@@ -226,7 +274,7 @@ function checkIdentity() {
                                     class="flex p-6 flex-column align-items-center justify-content-center h-4rem"
                                 >
                                     <div class="text-xl">IDT</div>
-                                    <div class="font-bold text-5xl">{{ wallet.idt }}</div>
+                                    <div class="font-bold text-5xl">{{ currentIdt }}</div>
                                 </div>
                             </div>
                             <div class="col-12">
@@ -235,11 +283,13 @@ function checkIdentity() {
                                 >
                                     <div class="p-inputgroup w-full">
                                         <span class="p-inputgroup-addon">
-                                            <i class="pi pi-bitcoin"></i>
+                                            <i class="pi pi-dollar"></i>
                                         </span>
-                                        <InputNumber placeholder="Price" />
+                                        <InputNumber v-model="inputIdt" placeholder="Price" />
                                     </div>
-                                    <Button size="small" class="p-btn shadow-3">Join</Button>
+                                    <Button size="small" class="p-btn shadow-3" @click="handleJoin"
+                                        >Join</Button
+                                    >
                                 </div>
                             </div>
                         </div>
@@ -281,6 +331,9 @@ function checkIdentity() {
     </div>
 </template>
 <style scoped>
+.p-section {
+    margin-top: 15%;
+}
 .loader {
     position: fixed;
     top: 50%;
@@ -298,15 +351,28 @@ function checkIdentity() {
     border: 1px solid rgb(70, 58, 58);
     border-top: 0px;
 }
+.p-card {
+    background-color: rgb(70, 58, 58);
+    color: rgb(238, 188, 99);
+    border: 1px solid rgb(238, 188, 99);
+    width: 40rem;
+    font-family: 'Allerta Stencil';
+}
+.p-card:hover {
+    background-color: rgb(238, 188, 99) !important;
+    color: rgb(70, 58, 58) !important;
+    border: 1px solid rgb(238, 188, 99) !important;
+    width: 40rem !important;
+    font-family: 'Allerta Stencil' !important;
+}
 .p-btn {
-    background-color: rgb(238, 188, 99);
-    color: rgb(70, 58, 58);
-    border: 0px;
-    /* width: 15rem; */
+    background-color: rgb(70, 58, 58);
+    color: rgb(238, 188, 99);
+    border: 1px solid rgb(238, 188, 99);
     font-family: 'Allerta Stencil';
 }
 .p-btn:hover {
-    background-color: rgb(70, 58, 58) !important;
+    background-color: rgb(136, 114, 114) !important;
     color: rgb(238, 188, 99) !important;
     border: 0px !important;
     font-family: 'Allerta Stencil';

@@ -13,9 +13,12 @@ import { useWalletStore } from '@/stores/wallet'
 import { ethers } from 'ethers'
 import { Unirep__factory } from '@unirep/contracts/typechain'
 import { useUnirepStore } from '@/stores/unirep'
+import { useRoute } from 'vue-router'
 const toast = useToast()
+let isloading = ref(false)
+
 const wallet = useWalletStore()
-//const unirep = useUnirepStore()
+const unirep = useUnirepStore()
 const project = reactive({
     name: 'Project name',
     mdContent: `
@@ -64,25 +67,50 @@ const options = ref<Option[]>([
 //     const option = options.value.find((opt) => opt.value === review)
 //     return option || { icon: 'pi pi-thumbs-up-fill', value: 'Up' }
 // }
-const solutions = reactive<ISolution[]>([])
+const route = useRoute()
 
+const projectContract = Project__factory.connect(route.params.address as string, wallet.signer!)
+let identity = ref()
+let isCheck = ref(true)
+
+const identityCheck = async () => {
+    if (!wallet.isConnected) {
+        wallet.connect()
+    }
+    identity.value = await projectContract.reviewers(wallet.address)
+    isCheck.value = false
+}
+const solutions = reactive<ISolution[]>([])
+const handleRegister = async () => {
+    await unirep.connect(route.params.address as string)
+    await unirep
+        .userState!.genUserSignUpProof()
+        .then(async (signupProof1) => {
+            return await projectContract.registerReviewer(
+                signupProof1?.publicSignals,
+                signupProof1?.proof
+            )
+        })
+        .then(async (tx) => {
+            isloading.value = true
+            await tx.wait()
+            isloading.value = false
+            identityCheck()
+        })
+}
 const sendReviewTx = async () => {
     // const projectABI = require('../../../../artifacts/contracts/Project.sol/Project.json')
     if (!wallet.isConnected) {
         await wallet.connect()
     }
     if (!unirep.isConnected) {
-        await unirep.connect('0xeda93bdc08c6ff2e67f8bc4123eb4a5275e8fdaa')
+        await unirep.connect(route.params.address as string)
     }
-    const project = Project__factory.connect(
-        '0xeDa93bDc08c6Ff2e67F8Bc4123eb4a5275E8FDaa',
-        wallet.signer!
-    )
     const unirep_ = Unirep__factory.connect(
         import.meta.env.VITE_UNIREP_ADDRESS as string,
         wallet.signer!
     )
-    const epoch = await unirep_.attesterEpochLength('0xeda93bdc08c6ff2e67f8bc4123eb4a5275e8fdaa')
+    const epoch = await unirep_.attesterEpochLength(route.params.address as string)
     const epochKey = genEpochKey(
         unirep.id?.secret!,
         unirep.userState?.sync.attesterId!,
@@ -90,22 +118,17 @@ const sendReviewTx = async () => {
         0
     )
 
-    const proof = await unirep.userState!.genUserSignUpProof()
-    project.registerReviewer(proof?.publicSignals, proof?.proof)
-
     const reviewTxns = solutions.map((solution) => {
-        return project.populateTransaction.review(
+        return projectContract.populateTransaction.review(
             epochKey,
             epoch.toBigInt(),
             solution.review.value === 'Up' ? 0 : 1,
             10
         )
     })
-    const batchTxn = new ethers.Contract(
-        '0xeDa93bDc08c6Ff2e67F8Bc4123eb4a5275E8FDaa',
-        '',
-        wallet.signer
-    ).batch(reviewTxns)
+    const batchTxn = new ethers.Contract(route.params.address as string, '', wallet.signer).batch(
+        reviewTxns
+    )
     await batchTxn.execute()
 }
 const handleSubmit = () => {
@@ -127,7 +150,6 @@ const handleSubmit = () => {
             })
         })
 }
-
 const totalGoodSolution = computed(() => {
     return solutions.reduce((sum, solution) => {
         if (solution.review.value == 'Up') {
@@ -139,66 +161,88 @@ const totalGoodSolution = computed(() => {
 })
 </script>
 <template>
-    <div class="card mx-4">
-        <div class="p-title grid mt-5 p-1 mx-1">
-            <div class="col-12 md:col-8 flex gap-3">
-                <h4>{{ project.name }}</h4>
-                <Tag :style="getStatusStyle(project.status)">{{ project.status }} </Tag>
+    <div v-if="isCheck" class="flex flex-column gap-6 mx-8 p-6">
+        <div class="p-section">
+            <div class="card flex justify-content-center">
+                <InlineMessage severity="info" class="text-4xl"
+                    >Before starting, you need to regist a unirep account first !</InlineMessage
+                >
             </div>
-            <div class="col-12 md:col-4 flex justify-content-end"></div>
+            <div class="card flex justify-content-center">
+                <Button
+                    label="Register"
+                    class="p-card shadow-3 text-3xl mt-6"
+                    @click="handleRegister"
+                />
+            </div>
+            <br />
         </div>
-        <div class="p-body grid mt-0 p-2 mx-1">
-            <MdView v-model="project.mdContent"></MdView>
-        </div>
-        <!-- Solution -->
-        <div class="p-title grid mt-5 p-2 mx-1 align-items-center justify-content-between">
-            <h4 class="ml-2">Review</h4>
-            <h4><span class="text-xs">Good</span> {{ totalGoodSolution }}</h4>
-            <h4><span class="text-xs">Bad</span> {{ solutions.length - totalGoodSolution }}</h4>
-            <Button size="small" class="p-btn shadow-3" @click="handleSubmit">Confirm</Button>
-        </div>
-        <div class="p-body mt-0 p-2 mx-1 flex flex-column gap-3">
-            <div v-for="solution in solutions" :key="solution.id" class="grid">
-                <div class="col-12 md:col-8">
-                    <Card
-                        class="border-round justify-content-center w-full shadow-2 hover:shadow-8"
-                        style="background-color: inherit"
-                    >
-                        <template #header> </template>
-                        <template #title> {{ solution.name }} </template>
-                        <template #subtitle> </template>
-                        <template #content>
-                            <p>
-                                Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore
-                                sed consequuntur error repudiandae numquam deserunt quisquam
-                                repellat libero asperiores earum nam nobis, culpa ratione quam
-                                perferendis esse, cupiditate neque quas!
-                            </p>
-                        </template>
-                        <template #footer>
-                            <div class="flex justify-content-center card-container gap-4">
-                                <Button
-                                    icon="pi pi-times"
-                                    label="More"
-                                    style="background-color: rgba(70, 58, 58, 0.8)"
-                                />
-                            </div>
-                        </template>
-                    </Card>
+        <div>
+            <div class="p-title grid mt-5 p-1 mx-1">
+                <div class="col-12 md:col-8 flex gap-3">
+                    <h4>{{ project.name }}</h4>
+                    <Tag :style="getStatusStyle(project.status)">{{ project.status }} </Tag>
                 </div>
-                <div class="col-12 md:col-4 flex justify-content-center align-items-center">
-                    <SelectButton
-                        v-model="solution.review"
-                        :options="options"
-                        optionLabel="value"
-                        dataKey="value"
-                        aria-labelledby="custom"
-                    >
-                        <template #option="slotProps">
-                            <i :class="slotProps.option.icon"></i>
-                        </template>
-                    </SelectButton>
-                </div>
+                <div class="col-12 md:col-4 flex justify-content-end"></div>
+            </div>
+            <div class="p-body grid mt-0 p-2 mx-1">
+                <MdView v-model="project.mdContent"></MdView>
+            </div>
+        </div>
+    </div>
+
+    <div
+        v-if="identity === 2"
+        class="p-title flex mt-5 p-2 mx-1 align-items-center justify-content-between"
+    >
+        <div class="card flex justify-content-center">
+            <InlineMessage class="text-6xl" severity="success">Review</InlineMessage>
+        </div>
+        <h4><span class="text-xs">Good</span> {{ totalGoodSolution }}</h4>
+        <h4><span class="text-xs">Bad</span> {{ solutions.length - totalGoodSolution }}</h4>
+        <Button size="large" class="p-card shadow-3 text-3xl" @click="handleSubmit">Confirm</Button>
+    </div>
+    <div class="p-body flex flex-column gap-6 m-12em">
+        <div v-for="solution in solutions" :key="solution.id" class="grid">
+            <div class="col-12 md:col-8">
+                <Card
+                    class="border-round justify-content-center w-full shadow-2 hover:shadow-8"
+                    style="background-color: inherit"
+                >
+                    <template #header> </template>
+                    <template #title> {{ solution.name }} </template>
+                    <template #subtitle> </template>
+                    <template #content>
+                        <p>
+                            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore sed
+                            consequuntur error repudiandae numquam deserunt quisquam repellat libero
+                            asperiores earum nam nobis, culpa ratione quam perferendis esse,
+                            cupiditate neque quas!
+                        </p>
+                    </template>
+                    <template #footer>
+                        <div class="flex justify-content-center card-container gap-4">
+                            <Button
+                                icon="pi pi-times"
+                                label="More"
+                                style="background-color: rgba(70, 58, 58, 0.8)"
+                            />
+                        </div>
+                    </template>
+                </Card>
+            </div>
+            <div class="col-12 md:col-4 flex justify-content-center align-items-center">
+                <SelectButton
+                    v-model="solution.review"
+                    :options="options"
+                    optionLabel="value"
+                    dataKey="value"
+                    aria-labelledby="custom"
+                >
+                    <template #option="slotProps">
+                        <i :class="slotProps.option.icon"></i>
+                    </template>
+                </SelectButton>
             </div>
         </div>
     </div>
@@ -255,9 +299,28 @@ const totalGoodSolution = computed(() => {
     border: 0px !important;
     font-family: 'Allerta Stencil';
 }
+
 .v-sol {
     height: 3rem;
     width: 100%;
     border: 1px solid;
+}
+.p-card {
+    background-color: rgb(70, 58, 58);
+    color: rgb(238, 188, 99);
+    border: 1px solid rgb(238, 188, 99);
+    width: 40rem;
+    font-family: 'Allerta Stencil';
+}
+.p-card:hover {
+    background-color: rgb(238, 188, 99) !important;
+    color: rgb(70, 58, 58) !important;
+    border: 1px solid rgb(238, 188, 99) !important;
+    width: 40rem !important;
+    font-family: 'Allerta Stencil' !important;
+}
+.p-section {
+    margin-top: 15%;
+    margin-bottom: 15%;
 }
 </style>

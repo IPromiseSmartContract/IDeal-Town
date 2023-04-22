@@ -150,18 +150,13 @@ async function doClaim() {
             eventResponse.private_event
         }}</InlineMessage>
     </div>
-    <br /><br />
-    <div class="card flex justify-content-center">
+    <div class="card flex flex-column justify-content-center align-items-center gap-6 p-6">
         <Button
-            size="small"
-            class="p-btn shadow-3 flex justify-content-center mb-2"
+            size="large"
+            class="p-card shadow-3 flex mb-2"
             @click="doClaim"
-        >
-            Claim POAP !
-        </Button>
-    </div>
-    <br />
-    <div class="card flex justify-content-center">
+            label="Claim POAP !"
+        />
         <InlineMessage severity="info"
             >POAP will send to your wallet after you successfully claim it !</InlineMessage
         >
@@ -169,6 +164,20 @@ async function doClaim() {
 </template>
 
 <style scoped>
+.p-card {
+    background-color: rgb(70, 58, 58);
+    color: rgb(238, 188, 99);
+    border: 1px solid rgb(238, 188, 99);
+    width: 40rem;
+    font-family: 'Allerta Stencil';
+}
+.p-card:hover {
+    background-color: rgb(238, 188, 99) !important;
+    color: rgb(70, 58, 58) !important;
+    border: 1px solid rgb(238, 188, 99) !important;
+    width: 40rem !important;
+    font-family: 'Allerta Stencil' !important;
+}
 .p-title {
     border: 2px solid rgb(70, 58, 58);
     color: rgb(59, 48, 48);
@@ -191,5 +200,8 @@ async function doClaim() {
     color: rgb(238, 188, 99) !important;
     border: 0px !important;
     font-family: 'Allerta Stencil';
+}
+.p-image {
+    height: 70%;
 }
 </style>
