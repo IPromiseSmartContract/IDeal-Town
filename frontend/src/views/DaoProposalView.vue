@@ -48,12 +48,14 @@ const storeOnDAOContract = async (url: string): Promise<any> => {
   //TODO: Implementation details for storing the URL on a DAO contract go here @skyline9981
   const tx = await daoContract.submitURL(url)
   const receipt = await tx.wait()
-  const event = receipt.events?.[0].args as URLSubmittedEvent | undefined
+  const event = receipt.events?.[0] as URLSubmittedEvent | undefined
+  
+
   if(!event){
-    toast.add({ severity: 'error', summary: 'Failed to store URL', detail: 'URL could not be stored on the DAO contract.' })
+    toast.add({ severity: 'error', summary: 'Failed to store URL', detail: 'URL could not be stored on the DAO contract.', life: 5000 })
     return
   }
-  toast.add({ severity:'success', summary: 'URL stored on the DAO contract', detail: `Tx: ${tx.hash}` })
+  toast.add({ severity:'success', summary: 'URL stored on the DAO contract', detail: `Tx: ${tx.hash}`, life: 3000 })
   return 
 }
 

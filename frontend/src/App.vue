@@ -41,6 +41,12 @@ const handleConnect = () => {
                 <MetaMaskSvg />
                 MetaMask
             </Button>
+            <Button
+                class="wallet-btn p-3 flex align-items-center justify-content-center gap-2"
+                @click=""
+            >
+                Blockto
+            </Button>
             <Button class="wallet-btn p-3 flex align-items-center justify-content-center" disabled>
                 TT Wallet
             </Button>
