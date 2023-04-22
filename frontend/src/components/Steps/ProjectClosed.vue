@@ -28,8 +28,12 @@ onMounted(() => {
             isloading.value = false
         })
         .catch((err) => {
-            console.error(err)
-            alert('Event error !')
+            toast.add({
+                severity: 'error',
+                summary: 'Create event failed',
+                detail: err,
+                life: 5000
+            })
         })
 })
 
@@ -46,11 +50,21 @@ async function getQRHash() {
         .then((resp) => {
             console.log(resp.data)
             QRhashResponse = resp.data
-            alert(resp.data)
+            // alert(resp.data)
+            toast.add({
+                severity: 'error',
+                summary: 'Get QR hash error',
+                detail: resp.data,
+                life: 5000
+            })
         })
         .catch((err) => {
-            console.error(err)
-            alert('QRhash error !')
+            toast.add({
+                severity: 'error',
+                summary: 'Get QR hash error',
+                detail: err,
+                life: 5000
+            })
         })
 }
 
@@ -68,13 +82,26 @@ async function getNFT() {
             NFTResponse = resp.data
         })
         .catch((err) => {
-            console.error(err)
-            alert('Get POAP error !')
+            toast.add({
+                severity: 'error',
+                summary: 'Claim POAP error',
+                detail: err,
+                life: 5000
+            })
         })
 }
 
 async function doClaim() {
-    getQRHash().then(() => getNFT())
+    getQRHash()
+        .then(() => getNFT())
+        .catch((err) => {
+            toast.add({
+                severity: 'error',
+                summary: 'Claim POAP',
+                detail: err,
+                life: 5000
+            })
+        })
 }
 </script>
 <template>
