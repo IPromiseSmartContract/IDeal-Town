@@ -9,21 +9,47 @@ import { useToast } from 'primevue/usetoast'
 import { useRouter } from 'vue-router'
 import { getStatusStyle } from '@/utils/style'
 
+import { useWalletStore } from '@/stores/wallet'
+import { Project__factory, ProjectFactory__factory } from "@/contracts"
+import type { Project } from "@/contracts/Project"
+import type { ProjectCreatedEvent } from "@/contracts/ProjectFactory"
+import type { ProjectFactory } from '@/contracts'
+import { id } from 'ethers/lib/utils'
+
 const toast = useToast()
 const router = useRouter()
+const walletStore = useWalletStore()
+const factoryAddress = import.meta.env.VITE_PROJECT_FACTORY_ADDRESS;
+let factory:ProjectFactory; 
 
 interface IProject {
-    id: number
+    id: string
     name: string
     status: string
     address: string
 }
 const projects = reactive<IProject[]>([])
-const generateProjects = async () => {
+const getProjects = async () => {
+    if(!walletStore.isConnected){
+        await walletStore.connect()
+    }
+    factory = ProjectFactory__factory.connect(factoryAddress, walletStore.provider!)
+    const events: ProjectCreatedEvent[] = await factory.queryFilter(factory.filters.ProjectCreated())
     const statusList = ['completed', 'active', 'inactive']
-    for (let i = 1; i <= 20; i++) {
+
+    for (const event of events) {
         const project: IProject = {
-            id: i,
+            id: event.args.projectId.toString(),
+            name: event.args.projectName,
+            status: "active",
+            address: event.args.projectAddress
+        }
+        projects.push(project)
+    }
+    
+    for (let i = 1; i <= 5; i++) {
+        const project: IProject = {
+            id: `Fake-${i}`,
             name: `Project ${i}`,
             status: statusList[Math.floor(Math.random() * statusList.length)],
             address: `0x${Math.floor(Math.random() * 1000000).toString(16)}`
@@ -32,7 +58,7 @@ const generateProjects = async () => {
     }
 }
 onMounted(async () => {
-    await generateProjects()
+    await getProjects()
 })
 const activeProjects = computed(() => {
     // Filter projects by status
