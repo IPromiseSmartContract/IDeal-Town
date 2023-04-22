@@ -46,16 +46,7 @@ const getProjects = async () => {
         }
         projects.push(project)
     }
-    
-    for (let i = 1; i <= 5; i++) {
-        const project: IProject = {
-            id: `Fake-${i}`,
-            name: `Project ${i}`,
-            status: statusList[Math.floor(Math.random() * statusList.length)],
-            address: `0x${Math.floor(Math.random() * 1000000).toString(16)}`
-        }
-        projects.push(project)
-    }
+    projects.sort((a, b) => b.id.localeCompare(a.id));
 }
 onMounted(async () => {
     await getProjects()
