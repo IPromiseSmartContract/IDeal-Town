@@ -4,8 +4,10 @@ import { useWalletStore } from '../../stores/wallet'
 import InlineMessage from 'primevue/inlinemessage'
 import { Project__factory } from '@/contracts'
 import Card from 'primevue/card'
+import { useToast } from 'primevue/usetoast'
 import { ref, onMounted } from 'vue'
 
+const toast = useToast()
 const walletStore = useWalletStore()
 const projectContract = Project__factory.connect(
     '0xfF848793EB02E9D59900a3E44aD0c14ED5c553DF',
@@ -40,10 +42,21 @@ async function checkWallet() {
 
 async function claimReward() {
     checkWallet()
-        .then()
-        .catch((err) => {
-            console.error(err)
-            alert('Claim reward error!\nYou do not have any reward!!!!')
+        .then(() => {
+            toast.add({
+                severity: 'success',
+                summary: 'Claim reward',
+                detail: `You get ${amountOfReward} IDT tokens.`,
+                life: 5000
+            })
+        })
+        .catch(() => {
+            toast.add({
+                severity: 'error',
+                summary: 'Claim reward',
+                detail: 'You do not have any reward in this project!',
+                life: 5000
+            })
         })
 }
 </script>
