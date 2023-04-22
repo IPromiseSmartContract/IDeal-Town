@@ -6,6 +6,8 @@ import ProgressBar from 'primevue/progressbar'
 import Button from 'primevue/button'
 import InputNumber from 'primevue/inputnumber'
 import { getStatusStyle } from '@/utils/style'
+import { useWalletStore } from '@/stores/wallet'
+import { Dao__factory } from '@/contracts'
 import MdView from '@/components/MdView.vue'
 const route = useRoute()
 const address = computed(() => route.params.address)
@@ -45,6 +47,7 @@ const ipjRatio = computed(() => {
     return (wallet.ipj / project.currentIpj) * 100
 })
 </script>
+
 <template>
     <div class="card mx-4">
         <div class="p-title grid mt-5 p-1 mx-1">

@@ -6,7 +6,7 @@ import { Identity } from '@semaphore-protocol/identity'
 import { DB, IndexedDBConnector } from 'anondb/web'
 import { useWalletStore } from './wallet'
 
-export const unirepStore = defineStore("unirep", ()=>{
+export const useUnirepStore = defineStore("unirep", ()=>{
     const id = ref<Identity | null>(null);
     const userState = ref<UserState | null>(null)
     const walletStore = useWalletStore()
@@ -28,5 +28,14 @@ export const unirepStore = defineStore("unirep", ()=>{
         userState.value = _userState 
     }
     const isConnected = computed(() =>!!id.value &&!!userState.value)
+
+    const registerDeveloper = async () => {
+        if(!isConnected){
+            alert("Please use unirepStore.connect before registering")
+            return
+        }
+        const proof = await userState.value?.genUserSignUpProof()
+    }
+
     return { id, userState, connect, isConnected }
 })

@@ -17,6 +17,8 @@ async function main() {
   // Deploy the Dao contract
   const daoFactory = await ethers.getContractFactory("Dao");
   const dao = await daoFactory.deploy(idtToken.address);
+  await dao.deployed();
+  console.log(`Dao deployed to: ${dao.address} | idtToken: ${idtToken.address}`);
 
   const ProjectFactoryFactory = await ethers.getContractFactory("ProjectFactory");
   const projectFactory = await ProjectFactoryFactory.connect(signer).deploy(unirep.address, idtToken.address);

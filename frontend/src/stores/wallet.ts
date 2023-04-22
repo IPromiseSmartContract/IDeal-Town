@@ -11,6 +11,16 @@ export const useWalletStore = defineStore("wallet", () => {
     }
     return undefined;
   });
+  const signer = computed(() => {
+    if (provider.value) {
+      return provider.value.getSigner();
+    }
+    return undefined;
+  })
+
+  const isConnected = computed(() => {
+    return address.value!== "";
+  })
 
   function addAccountListener() {
     window.ethereum?.on('accountsChanged', function (accounts: any) {
@@ -23,7 +33,7 @@ export const useWalletStore = defineStore("wallet", () => {
 
   const connect = async () => {
     if (!window.ethereum) return;
-    const networkParams = getNetworkParams(Networks.CHIADO);
+    const networkParams = getNetworkParams(Networks.SEPOLIA);
     try {
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
@@ -53,13 +63,5 @@ export const useWalletStore = defineStore("wallet", () => {
     }
   }
 
-  const getIDTBalance = async (IDTAddress: string):Promise<string> => {
-    if (!provider.value) return "0";
-    const ABIofIDT = require('../../../artifacts/contracts/IDTToken.sol/IDTToken.json')
-    const contract = new ethers.Contract(IDTAddress, ABIofIDT.abi, provider.value)
-    const balance = await contract.balanceOf(address.value)
-    return balance.toString();
-  }
-
-  return { address, provider, connect, getIDTBalance};
+  return { address, signer, provider, connect, isConnected};
 })
