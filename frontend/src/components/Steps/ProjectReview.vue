@@ -165,7 +165,7 @@ const totalGoodSolution = computed(() => {
         <div class="p-section">
             <div class="card flex justify-content-center">
                 <InlineMessage severity="info" class="text-4xl"
-                    >Before starting, you need to regist a unirep account first !</InlineMessage
+                    >Before starting, you need to register as a reviewer first !</InlineMessage
                 >
             </div>
             <div class="card flex justify-content-center">
