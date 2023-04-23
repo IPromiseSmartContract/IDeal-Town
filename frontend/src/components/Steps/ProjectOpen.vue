@@ -315,7 +315,7 @@ const handleRefresh = () => {
             <br />
             <div class="card flex justify-content-center">
                 <InlineMessage severity="info" class="text-3xl"
-                    >Before starting, you need to regist a unirep account first !</InlineMessage
+                    >Before starting, you need to register as an developer first !</InlineMessage
                 >
             </div>
         </div>
