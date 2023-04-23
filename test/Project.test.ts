@@ -115,7 +115,8 @@ describe("Project", function () {
 
         await project.connect(developer1).registerDeveloper(signupProof1.publicSignals, signupProof1.proof,);
         await project.connect(developer2).registerDeveloper(signupProof2.publicSignals, signupProof2.proof,);
-
+        await project.connect(developer1).verifyDeveloper(signupProof1.publicSignals, signupProof1.proof,);
+        await project.connect(developer2).verifyDeveloper(signupProof2.publicSignals, signupProof2.proof,);
         // signup reviewer
         reviewer1State = new UserState(synchronizer, new Identity("reviewer1"))
         reviewer2State = new UserState(synchronizer, new Identity("reviewer2"))

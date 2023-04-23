@@ -4,7 +4,7 @@ import { deployUnirep } from "@unirep/contracts/deploy"
 async function main() {
   const [signer] = await ethers.getSigners()
   console.log("Deploying contracts with the account:", signer.address)
-
+  
   const unirep = await deployUnirep(signer)
   console.log("UniRep deployed to:", unirep.address)
 
@@ -14,15 +14,21 @@ async function main() {
   await idtToken.deployed();
   console.log(`IDTToken deployed to: ${idtToken.address} | initialSupply: ${IDTInitialSupply}`);
 
+  // Deploy the Dao contract
+  const daoFactory = await ethers.getContractFactory("Dao");
+  const dao = await daoFactory.deploy(idtToken.address);
+  await dao.deployed();
+  console.log(`Dao deployed to: ${dao.address} | idtToken: ${idtToken.address}`);
+
   const ProjectFactoryFactory = await ethers.getContractFactory("ProjectFactory");
   const projectFactory = await ProjectFactoryFactory.connect(signer).deploy(unirep.address, idtToken.address);
   await projectFactory.deployed();
   console.log(`ProjectFactory deployed to: ${projectFactory.address}`);
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });

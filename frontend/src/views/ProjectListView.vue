@@ -9,30 +9,50 @@ import { useToast } from 'primevue/usetoast'
 import { useRouter } from 'vue-router'
 import { getStatusStyle } from '@/utils/style'
 
+import { useWalletStore } from '@/stores/wallet'
+import { ProjectFactory__factory } from '@/contracts'
+import type { ProjectCreatedEvent } from '@/contracts/ProjectFactory'
+import type { ProjectFactory } from '@/contracts'
+import Skeleton from 'primevue/skeleton'
+
 const toast = useToast()
 const router = useRouter()
+const walletStore = useWalletStore()
+const factoryAddress = import.meta.env.VITE_PROJECT_FACTORY_ADDRESS
+let factory: ProjectFactory
 
 interface IProject {
-    id: number
+    id: string
     name: string
     status: string
     address: string
 }
+const isLoading = ref(true)
 const projects = reactive<IProject[]>([])
-const generateProjects = async () => {
+const getProjects = async () => {
+    if (!walletStore.isConnected) {
+        await walletStore.connect()
+    }
+    factory = ProjectFactory__factory.connect(factoryAddress, walletStore.provider!)
+    const events: ProjectCreatedEvent[] = await factory.queryFilter(
+        factory.filters.ProjectCreated()
+    )
+    isLoading.value = false
     const statusList = ['completed', 'active', 'inactive']
-    for (let i = 1; i <= 20; i++) {
+
+    for (const event of events) {
         const project: IProject = {
-            id: i,
-            name: `Project ${i}`,
-            status: statusList[Math.floor(Math.random() * statusList.length)],
-            address: `0x${Math.floor(Math.random() * 1000000).toString(16)}`
+            id: event.args.projectId.toString(),
+            name: event.args.projectName,
+            status: 'active',
+            address: event.args.projectAddress
         }
         projects.push(project)
     }
+    projects.sort((a, b) => b.id.localeCompare(a.id))
 }
 onMounted(async () => {
-    await generateProjects()
+    await getProjects()
 })
 const activeProjects = computed(() => {
     // Filter projects by status
@@ -69,7 +89,17 @@ const items = ref([
 
 <template>
     <main>
-        <div class="card">
+        <div class="card" v-if="isLoading">
+            <div class="flex flex-wrap justify-content-center card-container gap-6">
+                <Skeleton
+                    class="h-28rem flex border-round justify-content-center w-full lg:w-3 md:w-5 sm:w-full shadow-2 hover:shadow-8"
+                    v-for="index in 12"
+                    :key="`Skeleton-${index}`"
+                >
+                </Skeleton>
+            </div>
+        </div>
+        <div class="card" v-else>
             <div class="flex flex-wrap justify-content-center card-container gap-6">
                 <Card
                     class="flex border-round justify-content-center w-full lg:w-3 md:w-5 sm:w-full shadow-2 hover:shadow-8"
@@ -112,7 +142,7 @@ const items = ref([
     <div
         :style="{
             position: 'sticky',
-            bottom: '15vh',
+            bottom: '20vh',
             height: '10px',
             left: '20px'
         }"

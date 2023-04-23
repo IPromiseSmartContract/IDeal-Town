@@ -1,19 +1,33 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { ethers } from 'ethers'
-import { getNetworkParams, Networks } from '@/utils/networks'
+import { Networks, getNetworkParams } from '@/utils/networks'
 
 export const useWalletStore = defineStore("wallet", () => {
   const address = ref("");
   const provider = computed(() => {
     if (window.ethereum) {
-      return new ethers.BrowserProvider(window.ethereum);
+      return new ethers.providers.Web3Provider(window.ethereum as any);
     }
     return undefined;
   });
+  const signer = computed(() => {
+    if (provider.value) {
+      return provider.value.getSigner();
+    }
+    return undefined;
+  })
+
+  const isConnected = computed(() => {
+    return address.value!== "";
+  })
+
+  const disconnect = () => {
+    address.value = "";
+  }
 
   function addAccountListener() {
-    window.ethereum?.on('accountsChanged', function (accounts) {
+    window.ethereum?.on('accountsChanged', function (accounts: any) {
       const addr = (accounts as string[])?.[0];
       if (addr) {
         address.value = addr
@@ -23,17 +37,16 @@ export const useWalletStore = defineStore("wallet", () => {
 
   const connect = async () => {
     if (!window.ethereum) return;
-
+    const networkParams = getNetworkParams(Networks.SEPOLIA);
     try {
       await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
-        params: [{ chainId: '0xf00' }],
+        params: [{ chainId: networkParams["chainId"] }],
       });
     } catch (switchError: any) {
       // This error code indicates that the chain has not been added to MetaMask.
       if (switchError.code === 4902) {
         try {
-          const networkParams = getNetworkParams();
           await window.ethereum.request({
             method: 'wallet_addEthereumChain',
             params: [networkParams],
@@ -46,12 +59,13 @@ export const useWalletStore = defineStore("wallet", () => {
 
     window.ethereum?.removeAllListeners();
     await window.ethereum?.request({ method: 'eth_requestAccounts' });
-    const signer = await provider.value?.getSigner();
-    if (signer?.address) {
-      address.value = signer.address;
+    const signer = provider.value?.getSigner();
+    const _addr = await signer?.getAddress();
+    if (_addr) {
+      address.value = _addr;
       addAccountListener();
     }
   }
 
-  return { address, provider, connect };
+  return { address, signer, provider, connect, isConnected, disconnect};
 })

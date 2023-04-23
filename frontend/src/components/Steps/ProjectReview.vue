@@ -1,18 +1,24 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
-import { computed, reactive } from 'vue'
+import { ref, computed, onMounted, reactive } from 'vue'
 import Tag from 'primevue/tag'
-import ProgressBar from 'primevue/progressbar'
+import SelectButton from 'primevue/selectbutton'
 import Button from 'primevue/button'
-import InputNumber from 'primevue/inputnumber'
 import { getStatusStyle } from '@/utils/style'
 import MdView from '@/components/MdView.vue'
-const route = useRoute()
-const address = computed(() => route.params.address)
-const wallet = reactive({
-    idt: 120,
-    ipj: 200
-})
+import { genEpochKey } from '@unirep/utils'
+import Card from 'primevue/card'
+import { useToast } from 'primevue/usetoast'
+import { Project__factory } from '@/contracts'
+import { useWalletStore } from '@/stores/wallet'
+import { ethers } from 'ethers'
+import { Unirep__factory } from '@unirep/contracts/typechain'
+import { useUnirepStore } from '@/stores/unirep'
+import { useRoute } from 'vue-router'
+const toast = useToast()
+let isloading = ref(false)
+
+const wallet = useWalletStore()
+const unirep = useUnirepStore()
 const project = reactive({
     name: 'Project name',
     mdContent: `
@@ -41,84 +47,225 @@ The project aims to create a comprehensive software platform that can be used to
     status: 'active',
     currentIpj: 1000
 })
-const ipjRatio = computed(() => {
-    return (wallet.ipj / project.currentIpj) * 100
+
+interface ISolution {
+    id: number
+    name: string
+    link: string
+    voteIpj: number
+    review: Option
+}
+interface Option {
+    icon: string
+    value: 'Up' | 'Down'
+}
+const options = ref<Option[]>([
+    { icon: 'pi pi-thumbs-up-fill', value: 'Up' },
+    { icon: 'pi pi-thumbs-down-fill', value: 'Down' }
+])
+// const getOption = (review: 'Up' | 'Down'): Option => {
+//     const option = options.value.find((opt) => opt.value === review)
+//     return option || { icon: 'pi pi-thumbs-up-fill', value: 'Up' }
+// }
+const route = useRoute()
+
+const projectContract = Project__factory.connect(route.params.address as string, wallet.signer!)
+let identity = ref()
+let isCheck = ref(true)
+
+const identityCheck = async () => {
+    if (!wallet.isConnected) {
+        wallet.connect()
+    }
+    identity.value = await projectContract.reviewers(wallet.address)
+    isCheck.value = false
+}
+const solutions = reactive<ISolution[]>([])
+const handleRegister = async () => {
+    await unirep.connect(route.params.address as string)
+    await unirep
+        .userState!.genUserSignUpProof()
+        .then(async (signupProof1) => {
+            return await projectContract.registerReviewer(
+                signupProof1?.publicSignals,
+                signupProof1?.proof
+            )
+        })
+        .then(async (tx) => {
+            isloading.value = true
+            await tx.wait()
+            isloading.value = false
+            identityCheck()
+        })
+}
+const sendReviewTx = async () => {
+    // const projectABI = require('../../../../artifacts/contracts/Project.sol/Project.json')
+    if (!wallet.isConnected) {
+        await wallet.connect()
+    }
+    if (!unirep.isConnected) {
+        await unirep.connect(route.params.address as string)
+    }
+    const unirep_ = Unirep__factory.connect(
+        import.meta.env.VITE_UNIREP_ADDRESS as string,
+        wallet.signer!
+    )
+    const epoch = await unirep_.attesterEpochLength(route.params.address as string)
+    const epochKey = genEpochKey(
+        unirep.id?.secret!,
+        unirep.userState?.sync.attesterId!,
+        epoch.toBigInt(),
+        0
+    )
+
+    const reviewTxns = solutions.map((solution) => {
+        return projectContract.populateTransaction.review(
+            epochKey,
+            epoch.toBigInt(),
+            solution.review.value === 'Up' ? 0 : 1,
+            10
+        )
+    })
+    const batchTxn = new ethers.Contract(route.params.address as string, '', wallet.signer).batch(
+        reviewTxns
+    )
+    await batchTxn.execute()
+}
+const handleSubmit = () => {
+    sendReviewTx()
+        .then(() => {
+            toast.add({
+                severity: 'success',
+                summary: 'Submit',
+                detail: 'vote',
+                life: 5000
+            })
+        })
+        .catch(() => {
+            toast.add({
+                severity: 'error',
+                summary: 'Submit',
+                detail: 'vote contract failed',
+                life: 5000
+            })
+        })
+}
+const totalGoodSolution = computed(() => {
+    return solutions.reduce((sum, solution) => {
+        if (solution.review.value == 'Up') {
+            return sum + 1
+        } else {
+            return sum
+        }
+    }, 0)
 })
 </script>
 <template>
-    <div class="card mx-4">
-        <div class="p-title grid mt-5 p-1 mx-1">
-            <div class="col-12 md:col-8 flex gap-3">
-                <h4>{{ project.name }}</h4>
-                <Tag :style="getStatusStyle(project.status)">{{ project.status }} </Tag>
+    <div v-if="isCheck" class="flex flex-column gap-6 mx-8 p-6">
+        <div class="p-section">
+            <div class="card flex justify-content-center">
+                <InlineMessage severity="info" class="text-4xl"
+                    >Before starting, you need to regist a unirep account first !</InlineMessage
+                >
             </div>
-            <div class="col-12 md:col-4 flex justify-content-end"></div>
-        </div>
-        <div class="p-body grid mt-0 p-2 mx-1">
-            <MdView v-model="project.mdContent"></MdView>
-        </div>
-        <div class="grid">
-            <!-- Solution -->
-            <div class="col-12 md:col-6">
-                <div class="p-title grid mt-5 p-2 mx-1 align-items-center justify-content-between">
-                    <h4>Solution</h4>
-                    <Button size="small" class="p-btn shadow-3">Solve</Button>
-                </div>
-                <div class="p-body grid mt-0 p-2 mx-1"></div>
+            <div class="card flex justify-content-center">
+                <Button
+                    label="Register"
+                    class="p-card shadow-3 text-3xl mt-6"
+                    @click="handleRegister"
+                />
             </div>
-            <!-- Register -->
-            <div class="col-12 md:col-6">
-                <div class="p-title grid mt-5 p-2 mx-1 align-items-center justify-content-between">
-                    <h4>My Position</h4>
-                    <Button size="small" class="p-btn shadow-3">Connect</Button>
+            <br />
+        </div>
+        <div>
+            <div class="p-title grid mt-5 p-1 mx-1">
+                <div class="col-12 md:col-8 flex gap-3">
+                    <h4>{{ project.name }}</h4>
+                    <Tag :style="getStatusStyle(project.status)">{{ project.status }} </Tag>
                 </div>
-                <div class="p-body mt-0 p-2 mx-1 grid">
-                    <div class="col-12">
-                        <ProgressBar :value="ipjRatio"
-                            >{{ wallet.ipj }}/{{ project.currentIpj }}</ProgressBar
-                        >
-                    </div>
-                    <div class="col-12 md:col-6">
-                        <div
-                            class="flex p-6 flex-column align-items-center justify-content-center h-4rem"
-                        >
-                            <div class="text-xl">IPJ</div>
-                            <div class="font-bold text-5xl">{{ wallet.ipj }}</div>
+                <div class="col-12 md:col-4 flex justify-content-end"></div>
+            </div>
+            <div class="p-body grid mt-0 p-2 mx-1">
+                <MdView v-model="project.mdContent"></MdView>
+            </div>
+        </div>
+    </div>
+
+    <div
+        v-if="identity === 2"
+        class="p-title flex mt-5 p-2 mx-1 align-items-center justify-content-between"
+    >
+        <div class="card flex justify-content-center">
+            <InlineMessage class="text-6xl" severity="success">Review</InlineMessage>
+        </div>
+        <h4><span class="text-xs">Good</span> {{ totalGoodSolution }}</h4>
+        <h4><span class="text-xs">Bad</span> {{ solutions.length - totalGoodSolution }}</h4>
+        <Button size="large" class="p-card shadow-3 text-3xl" @click="handleSubmit">Confirm</Button>
+    </div>
+    <div class="p-body flex flex-column gap-6 m-12em">
+        <div v-for="solution in solutions" :key="solution.id" class="grid">
+            <div class="col-12 md:col-8">
+                <Card
+                    class="border-round justify-content-center w-full shadow-2 hover:shadow-8"
+                    style="background-color: inherit"
+                >
+                    <template #header> </template>
+                    <template #title> {{ solution.name }} </template>
+                    <template #subtitle> </template>
+                    <template #content>
+                        <p>
+                            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore sed
+                            consequuntur error repudiandae numquam deserunt quisquam repellat libero
+                            asperiores earum nam nobis, culpa ratione quam perferendis esse,
+                            cupiditate neque quas!
+                        </p>
+                    </template>
+                    <template #footer>
+                        <div class="flex justify-content-center card-container gap-4">
+                            <Button
+                                icon="pi pi-times"
+                                label="More"
+                                style="background-color: rgba(70, 58, 58, 0.8)"
+                            />
                         </div>
-                    </div>
-                    <div class="col-12 md:col-6">
-                        <div
-                            class="flex p-6 flex-column align-items-center justify-content-center h-4rem"
-                        >
-                            <div class="text-xl">IDT</div>
-                            <div class="font-bold text-5xl">{{ wallet.idt }}</div>
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <div
-                            class="flex flex-column align-items-center justify-content-center mt-5 gap-3"
-                        >
-                            <div class="p-inputgroup w-full">
-                                <span class="p-inputgroup-addon">
-                                    <i class="pi pi-bitcoin"></i>
-                                </span>
-                                <InputNumber placeholder="Price" />
-                            </div>
-                            <Button size="small" class="p-btn shadow-3">Join</Button>
-                        </div>
-                    </div>
-                </div>
+                    </template>
+                </Card>
+            </div>
+            <div class="col-12 md:col-4 flex justify-content-center align-items-center">
+                <SelectButton
+                    v-model="solution.review"
+                    :options="options"
+                    optionLabel="value"
+                    dataKey="value"
+                    aria-labelledby="custom"
+                >
+                    <template #option="slotProps">
+                        <i :class="slotProps.option.icon"></i>
+                    </template>
+                </SelectButton>
             </div>
         </div>
     </div>
 </template>
 <style scoped>
+::v-deep(.p-component) {
+    font-family: 'Rubik', sans-serif;
+}
 ::v-deep(.p-inputgroup-addon) {
     background-color: rgb(70, 58, 58);
     color: rgb(238, 188, 99);
 }
-::v-deep(.p-inputnumber-input) {
+::v-deep(.p-selectbutton .p-button.p-highlight) {
     background-color: inherit;
+    background: rgb(238, 188, 99);
+    border: 0px;
+    color: rgb(70, 58, 58);
+}
+::v-deep(.p-selectbutton .p-button.p-highlight):hover {
+    background-color: inherit;
+    background: rgb(70, 58, 58);
+    border: 0px;
+    color: rgb(238, 188, 99);
 }
 ::v-deep(.p-progressbar-value) {
     background-color: rgb(70, 58, 58) !important;
@@ -133,8 +280,8 @@ const ipjRatio = computed(() => {
 .p-title {
     border: 2px solid rgb(70, 58, 58);
     color: rgb(59, 48, 48);
-    font-size: large;
-    font-family: 'Allerta Stencil';
+    font-size: x-large;
+    font-family: 'Rubik', sans-serif;
 }
 .p-body {
     border: 1px solid rgb(70, 58, 58);
@@ -151,5 +298,29 @@ const ipjRatio = computed(() => {
     color: rgb(238, 188, 99) !important;
     border: 0px !important;
     font-family: 'Allerta Stencil';
+}
+
+.v-sol {
+    height: 3rem;
+    width: 100%;
+    border: 1px solid;
+}
+.p-card {
+    background-color: rgb(70, 58, 58);
+    color: rgb(238, 188, 99);
+    border: 1px solid rgb(238, 188, 99);
+    width: 40rem;
+    font-family: 'Allerta Stencil';
+}
+.p-card:hover {
+    background-color: rgb(238, 188, 99) !important;
+    color: rgb(70, 58, 58) !important;
+    border: 1px solid rgb(238, 188, 99) !important;
+    width: 40rem !important;
+    font-family: 'Allerta Stencil' !important;
+}
+.p-section {
+    margin-top: 15%;
+    margin-bottom: 15%;
 }
 </style>

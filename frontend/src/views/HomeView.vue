@@ -5,8 +5,8 @@ import { reactive, onMounted, inject } from 'vue'
 import { useRouter } from 'vue-router'
 import LoginBtn from '@/components/LoginBtn.vue'
 import type { LoginOptActions, LoginOptState } from '@/utils/types'
-const dialog = inject<LoginOptActions & LoginOptState>('dialog')!
 
+const dialog = inject<LoginOptActions & LoginOptState>('dialog')!
 const router = useRouter()
 
 interface IProject {
@@ -47,40 +47,22 @@ const goToProjectListView = () => {
         <div
             class="flex justify-content-center card-container py-5 text-xl scalein animation-duration-1000"
         >
-            Ideal town make idea come true
+            Ideal town makes idea come true
         </div>
         <div class="flex justify-content-center card-container gap-4 mt-6">
             <Button
-                icon="pi pi-check"
+                icon="pi pi-bolt"
                 label="Join"
                 style="background-color: #eebc63; border: 0; color: #000"
                 @click="(e: Event) => goToProjectListView()"
             />
-            <Button
-                icon="pi pi-times"
-                label="More"
-                style="background-color: rgba(70, 58, 58, 0.8)"
-            />
-            <LoginBtn></LoginBtn>
         </div>
-    </div>
-    <div
-        class="flex justify-content-center card-container py-5 text-xl scalein animation-duration-1000"
-    >
-        Ideal town makes idea come true
-    </div>
-    <div class="flex justify-content-center card-container gap-4 mt-6">
-        <Button
-            icon="pi pi-check"
-            label="Join"
-            style="background-color: #eebc63; border: 0; color: #000"
-            @click="(e: Event) => goToProjectListView()"
-        />
-        <Button icon="pi pi-times" label="More" style="background-color: rgba(70, 58, 58, 0.8)" />
-        <LoginBtn></LoginBtn>
     </div>
 </template>
 <style scoped>
+::v-deep(.p-component) {
+    font-family: 'Rubik', sans-serif;
+}
 .section {
     font-family: 'Allerta Stencil';
     margin-top: 50px;

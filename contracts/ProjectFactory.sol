@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.18;
 
 import "./Project.sol";
 import "./IDTToken.sol";
@@ -10,11 +10,13 @@ contract ProjectFactory is Ownable {
     Unirep public unirep;
     IDTToken public idt;
     uint256 public count;
-    uint48 internal constant epochLength = 1000;
+    uint48 internal constant epochLength = 30;
     address[] public reviewers;
 
     event ProjectCreated(
         address indexed creator,
+        uint256 indexed projectId,
+        string projectName,
         address projectAddress,
         address tokenAddress
     );
@@ -55,7 +57,13 @@ contract ProjectFactory is Ownable {
             unirep
         );
         project.registerAttester(epochLength);
-        emit ProjectCreated(msg.sender, address(project), address(token));
+        emit ProjectCreated(
+            msg.sender,
+            count,
+            name,
+            address(project),
+            address(token)
+        );
     }
 
     function updateReviewers(
