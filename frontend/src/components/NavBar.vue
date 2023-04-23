@@ -3,7 +3,7 @@ import Button from 'primevue/button'
 import Menubar from 'primevue/menubar'
 import { useWalletStore } from '@/stores/wallet'
 import { ref, inject } from 'vue'
-import { truncateAddress } from "@/utils/address";
+import { truncateAddress } from '@/utils/address'
 import LogoSvg from '@/components/icons/LogoSvg.vue'
 import { useRouter } from 'vue-router'
 import type { LoginOptActions, LoginOptState } from '@/utils/types'
@@ -15,16 +15,28 @@ const items = ref([
     {
         label: 'Idea',
         icon: 'pi pi-fw pi-pencil',
-        command: () => {}
+        command: () => {
+            window.location.assign(
+                'https://drive.google.com/drive/folders/15a796WD9VL8VZorJGnAbeT5JNJcDSR4W'
+            )
+        }
         // items: []
     },
     {
         label: 'Developer',
-        icon: 'pi pi-fw pi-user'
+        icon: 'pi pi-fw pi-user',
+        command: () => {
+            window.location.assign('https://www.youtube.com/watch?v=XlFkdp0Oelk')
+        }
     },
     {
         label: 'Doc',
-        icon: 'pi pi-fw pi-file'
+        icon: 'pi pi-fw pi-file',
+        command: () => {
+            window.location.assign(
+                'https://docs.google.com/presentation/d/1Eq-q3MbA7IiGeueKUIwdZ7cA1c9I-AwlctbQnGYBWYI/edit#slide=id.g21d34bde5a4_3_433'
+            )
+        }
     },
     {
         label: 'Govern',
