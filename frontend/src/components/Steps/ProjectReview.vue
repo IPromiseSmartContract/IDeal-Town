@@ -14,6 +14,7 @@ import { ethers } from 'ethers'
 import { Unirep__factory } from '@unirep/contracts/typechain'
 import { useUnirepStore } from '@/stores/unirep'
 import { useRoute } from 'vue-router'
+import ProgressSpinner from 'primevue/progressspinner'
 const toast = useToast()
 let isloading = ref(false)
 
@@ -47,7 +48,7 @@ The project aims to create a comprehensive software platform that can be used to
     status: 'active',
     currentIpj: 1000
 })
-
+const progressingStr = ref('Before starting, you need to regist a unirep account first !')
 interface ISolution {
     id: number
     name: string
@@ -57,11 +58,11 @@ interface ISolution {
 }
 interface Option {
     icon: string
-    value: 'Up' | 'Down'
+    value: 'up' | 'down'
 }
 const options = ref<Option[]>([
-    { icon: 'pi pi-thumbs-up-fill', value: 'Up' },
-    { icon: 'pi pi-thumbs-down-fill', value: 'Down' }
+    { icon: 'pi pi-thumbs-up-fill', value: 'up' },
+    { icon: 'pi pi-thumbs-down-fill', value: 'down' }
 ])
 // const getOption = (review: 'Up' | 'Down'): Option => {
 //     const option = options.value.find((opt) => opt.value === review)
@@ -80,7 +81,20 @@ const identityCheck = async () => {
     identity.value = await projectContract.reviewers(wallet.address)
     isCheck.value = false
 }
-const solutions = reactive<ISolution[]>([])
+interface TempSolution {
+    name: string
+    review: Option
+}
+const solutions = reactive<TempSolution[]>([
+    { name: 'Solution 1', review: { icon: 'pi pi-thumbs-up-fill', value: 'up' } },
+    { name: 'Solution 2', review: { icon: 'pi pi-thumbs-up-fill', value: 'up' } },
+    { name: 'Solution 3', review: { icon: 'pi pi-thumbs-up-fill', value: 'up' } },
+    { name: 'Solution 4', review: { icon: 'pi pi-thumbs-up-fill', value: 'up' } },
+    { name: 'Solution 5', review: { icon: 'pi pi-thumbs-up-fill', value: 'up' } },
+    { name: 'Solution 6', review: { icon: 'pi pi-thumbs-up-fill', value: 'up' } },
+    { name: 'Solution 7', review: { icon: 'pi pi-thumbs-up-fill', value: 'up' } },
+    { name: 'Solution 8', review: { icon: 'pi pi-thumbs-up-fill', value: 'up' } }
+])
 const handleRegister = async () => {
     await unirep.connect(route.params.address as string)
     await unirep
@@ -98,81 +112,105 @@ const handleRegister = async () => {
             identityCheck()
         })
 }
-const sendReviewTx = async () => {
-    // const projectABI = require('../../../../artifacts/contracts/Project.sol/Project.json')
-    if (!wallet.isConnected) {
-        await wallet.connect()
-    }
-    if (!unirep.isConnected) {
-        await unirep.connect(route.params.address as string)
-    }
-    const unirep_ = Unirep__factory.connect(
-        import.meta.env.VITE_UNIREP_ADDRESS as string,
-        wallet.signer!
-    )
-    const epoch = await unirep_.attesterEpochLength(route.params.address as string)
-    const epochKey = genEpochKey(
-        unirep.id?.secret!,
-        unirep.userState?.sync.attesterId!,
-        epoch.toBigInt(),
-        0
-    )
+// const sendReviewTx = async () => {
+//     // const projectABI = require('../../../../artifacts/contracts/Project.sol/Project.json')
+//     if (!wallet.isConnected) {
+//         await wallet.connect()
+//     }
+//     if (!unirep.isConnected) {
+//         await unirep.connect(route.params.address as string)
+//     }
+//     const unirep_ = Unirep__factory.connect(
+//         import.meta.env.VITE_UNIREP_ADDRESS as string,
+//         wallet.signer!
+//     )
+//     const epoch = await unirep_.attesterEpochLength(route.params.address as string)
+//     const epochKey = genEpochKey(
+//         unirep.id?.secret!,
+//         unirep.userState?.sync.attesterId!,
+//         epoch.toBigInt(),
+//         0
+//     )
 
-    const reviewTxns = solutions.map((solution) => {
-        return projectContract.populateTransaction.review(
-            epochKey,
-            epoch.toBigInt(),
-            solution.review.value === 'Up' ? 0 : 1,
-            10
-        )
-    })
-    const batchTxn = new ethers.Contract(route.params.address as string, '', wallet.signer).batch(
-        reviewTxns
-    )
-    await batchTxn.execute()
-}
-const handleSubmit = () => {
-    sendReviewTx()
-        .then(() => {
-            toast.add({
-                severity: 'success',
-                summary: 'Submit',
-                detail: 'vote',
-                life: 5000
-            })
-        })
-        .catch(() => {
-            toast.add({
-                severity: 'error',
-                summary: 'Submit',
-                detail: 'vote contract failed',
-                life: 5000
-            })
-        })
-}
+//     const reviewTxns = solutions.map((solution) => {
+//         return projectContract.populateTransaction.review(
+//             epochKey,
+//             epoch.toBigInt(),
+//             solution.review.value === 'Up' ? 0 : 1,
+//             10
+//         )
+//     })
+//     const batchTxn = new ethers.Contract(route.params.address as string, '', wallet.signer).batch(
+//         reviewTxns
+//     )
+//     await batchTxn.execute()
+// }
+// const handleSubmit = () => {
+//     sendReviewTx()
+//         .then(() => {
+//             toast.add({
+//                 severity: 'success',
+//                 summary: 'Submit',
+//                 detail: 'vote',
+//                 life: 5000
+//             })
+//         })
+//         .catch(() => {
+//             toast.add({
+//                 severity: 'error',
+//                 summary: 'Submit',
+//                 detail: 'vote contract failed',
+//                 life: 5000
+//             })
+//         })
+// }
 const totalGoodSolution = computed(() => {
     return solutions.reduce((sum, solution) => {
-        if (solution.review.value == 'Up') {
+        if (solution.review.value == 'up') {
             return sum + 1
         } else {
             return sum
         }
     }, 0)
 })
+const handleMockRegister = () => {
+    isloading.value = true
+    progressingStr.value = 'Sending transactions ...'
+    setTimeout(() => {
+        isloading.value = false
+        toast.add({
+            severity: 'success',
+            summary: 'Reviewer register OK',
+            detail: 'register',
+            life: 5000
+        })
+        progressingStr.value = 'Transactions successfully'
+    }, 5000)
+}
+const handleSubmit = () => {
+    isloading.value = true
+    setTimeout(() => {
+        isloading.value = false
+        toast.add({
+            severity: 'success',
+            summary: 'Batch Vote OK',
+            detail: 'vote',
+            life: 5000
+        })
+    }, 5000)
+}
 </script>
 <template>
     <div v-if="isCheck" class="flex flex-column gap-6 mx-8 p-6">
         <div class="p-section">
             <div class="card flex justify-content-center">
-                <InlineMessage severity="info" class="text-4xl"
-                    >Before starting, you need to regist a unirep account first !</InlineMessage
-                >
+                <InlineMessage severity="info" class="text-4xl">{{ progressingStr }}</InlineMessage>
             </div>
             <div class="card flex justify-content-center">
                 <Button
                     label="Register"
-                    class="p-card shadow-3 text-3xl mt-6"
-                    @click="handleRegister"
+                    class="p-btn shadow-3 text-3xl mt-6"
+                    @click="handleMockRegister"
                 />
             </div>
             <br />
@@ -190,20 +228,24 @@ const totalGoodSolution = computed(() => {
             </div>
         </div>
     </div>
-
-    <div
-        v-if="identity === 2"
-        class="p-title flex mt-5 p-2 mx-1 align-items-center justify-content-between"
-    >
+    <!-- v-if="identity === 2" -->
+    <div class="p-title flex mt-5 p-2 mx-1 align-items-center justify-content-between">
         <div class="card flex justify-content-center">
             <InlineMessage class="text-6xl" severity="success">Review</InlineMessage>
         </div>
         <h4><span class="text-xs">Good</span> {{ totalGoodSolution }}</h4>
         <h4><span class="text-xs">Bad</span> {{ solutions.length - totalGoodSolution }}</h4>
-        <Button size="large" class="p-card shadow-3 text-3xl" @click="handleSubmit">Confirm</Button>
+        <Button
+            icon="pi pi-search"
+            :loading="isloading"
+            size="large"
+            class="p-btn shadow-3 text-3xl"
+            @click="handleSubmit"
+            label="Confirm"
+        ></Button>
     </div>
-    <div class="p-body flex flex-column gap-6 m-12em">
-        <div v-for="solution in solutions" :key="solution.id" class="grid">
+    <div class="p-body flex flex-column p-2 mx-1 gap-6 m-12em">
+        <div v-for="solution in solutions" class="grid">
             <div class="col-12 md:col-8">
                 <Card
                     class="border-round justify-content-center w-full shadow-2 hover:shadow-8"
@@ -216,8 +258,7 @@ const totalGoodSolution = computed(() => {
                         <p>
                             Lorem ipsum dolor sit amet, consectetur adipisicing elit. Inventore sed
                             consequuntur error repudiandae numquam deserunt quisquam repellat libero
-                            asperiores earum nam nobis, culpa ratione quam perferendis esse,
-                            cupiditate neque quas!
+                            asperiores earum nam nobis!
                         </p>
                     </template>
                     <template #footer>
@@ -248,6 +289,13 @@ const totalGoodSolution = computed(() => {
     </div>
 </template>
 <style scoped>
+.loader {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+}
 ::v-deep(.p-component) {
     font-family: 'Rubik', sans-serif;
 }
@@ -305,20 +353,20 @@ const totalGoodSolution = computed(() => {
     width: 100%;
     border: 1px solid;
 }
+
 .p-card {
-    background-color: rgb(70, 58, 58);
-    color: rgb(238, 188, 99);
-    border: 1px solid rgb(238, 188, 99);
+    background-color: rgb(238, 188, 99);
+    color: rgb(70, 58, 58);
     width: 40rem;
     font-family: 'Allerta Stencil';
 }
-.p-card:hover {
+/* .p-card:hover {
     background-color: rgb(238, 188, 99) !important;
     color: rgb(70, 58, 58) !important;
     border: 1px solid rgb(238, 188, 99) !important;
     width: 40rem !important;
     font-family: 'Allerta Stencil' !important;
-}
+} */
 .p-section {
     margin-top: 15%;
     margin-bottom: 15%;

@@ -10,6 +10,7 @@ import DynamicDialog from 'primevue/dynamicdialog'
 import { useDialog } from 'primevue/usedialog'
 
 const dialog = useDialog()
+const isLoading = ref(false)
 const toast = useToast()
 const walletStore = useWalletStore()
 const projectContract = Project__factory.connect(
@@ -62,18 +63,32 @@ async function claimReward() {
             })
         })
 }
+const handleFake = () => {
+    isLoading.value = true
+    setTimeout(() => {
+        isLoading.value = false
+        toast.add({
+            severity: 'success',
+            summary: 'Batch Vote OK',
+            detail: 'vote',
+            life: 3000
+        })
+    }, 4000)
+}
 </script>
 <template>
     <div class="p-section flex flex-column gap-6 p-6">
-        <div class="card flex justify-content-center text-6xl">
-            Now, your reward in this project is {{ amountOfReward }} IDT tokens.
+        <div class="card flex justify-content-center text-5xl">
+            Now, your reward in this project is 22.13 IDT tokens.
         </div>
         <div class="card flex justify-content-center">
             <Button
+                icon="pi pi-search"
+                :loading="isLoading"
                 size="large"
                 label="Claim Your Reward !"
                 class="p-card shadow-3 text-3xl"
-                @click="claimReward"
+                @click="handleFake"
             />
         </div>
     </div>
