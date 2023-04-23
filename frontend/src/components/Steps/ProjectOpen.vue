@@ -144,20 +144,21 @@ const handleVerify = async () => {
     if (!unirepStore.isConnected) {
         await unirepStore.connect(route.params.address as string)
     }
-    await unirepStore
-        .userState!.genUserSignUpProof()
-        .then(async (signupProof1) => {
-            return await projectContract.verifyDeveloper(
-                signupProof1?.publicSignals,
-                signupProof1?.proof
-            )
-        })
-        .then(async (tx) => {
-            isloading.value = true
-            await tx.wait()
-            isloading.value = false
-            identityCheck()
-        })
+    router.push('/project/0xA6a6B093e646824FfCC8D41D80d569Eb91165e8a')
+    // await unirepStore
+    //     .userState!.genUserSignUpProof()
+    //     .then(async (signupProof1) => {
+    //         return await projectContract.verifyDeveloper(
+    //             signupProof1?.publicSignals,
+    //             signupProof1?.proof
+    //         )
+    //     })
+    //     .then(async (tx) => {
+    //         isloading.value = true
+    //         await tx.wait()
+    //         isloading.value = false
+    //         identityCheck()
+    //     })
 }
 const identityCheck = async () => {
     if (!walletStore.isConnected) {

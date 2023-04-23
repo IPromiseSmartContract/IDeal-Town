@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import MdEditor from '@/components/MdEditor.vue'
-import ProgressSpinner from 'primevue/progressspinner';
+import ProgressSpinner from 'primevue/progressspinner'
 import Button from 'primevue/button'
 import { uploadToIPFS } from '@/utils/ipfs'
 import { zipTextAndFiles, unzipFiles, type FileObject } from '@/utils/helper'
@@ -70,20 +70,18 @@ const storeOnProjectContract = async (
         await walletStore.connect()
     }
     const factoryAddress = import.meta.env.VITE_PROJECT_FACTORY_ADDRESS as string
-    
+
     const factoryContract = ProjectFactory__factory.connect(factoryAddress, walletStore.signer!)
-    return factoryContract.createProject(name, expiration, threshold, url)
-    .then(async tx => {
-        isloading.value = true
-        return await tx.wait()
-    })
-    .then(
-        receipt => {
+    return factoryContract
+        .createProject(name, expiration, threshold, url)
+        .then(async (tx) => {
+            isloading.value = true
+            return await tx.wait()
+        })
+        .then((receipt) => {
             const event = receipt.events?.[0] as URLSubmittedEvent | undefined
             return event!.address
-        }
-    )
-    
+        })
 }
 /**
  * Uploads the given text content to IPFS and stores the resulting URL on a smart contract using the specified function.
@@ -129,7 +127,7 @@ const handlePublish = () => {
                                 detail: `Tx: `,
                                 life: 5000
                             })
-                            router.push(`/project/${address}`)
+                            router.push(`/project/0x8AEbdad46092664ec04c09b818A3952942285575`)
                         })
                         .catch((error: Error) => {
                             // Handle any errors that occur when storing the URL on a smart contract
@@ -195,19 +193,24 @@ const handlePublish = () => {
             @click="router.push('/')"
             >
         </Button> -->
-        <div  v-if="isloading" class="loader">
-        <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="8" fill="var(--surface-ground)"
-            animationDuration="1.5s" aria-label="Custom ProgressSpinner" />
+        <div v-if="isloading" class="loader">
+            <ProgressSpinner
+                style="width: 50px; height: 50px"
+                strokeWidth="8"
+                fill="var(--surface-ground)"
+                animationDuration="1.5s"
+                aria-label="Custom ProgressSpinner"
+            />
         </div>
     </div>
 </template>
 <style scoped>
 .loader {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 9999;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
 }
 .p-input {
     background-color: inherit;
