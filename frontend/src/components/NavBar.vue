@@ -13,7 +13,7 @@ const router = useRouter()
 const walletStore = useWalletStore()
 const items = ref([
     {
-        label: 'Idea',
+        label: 'Demo',
         icon: 'pi pi-fw pi-pencil',
         command: () => {
             window.location.assign(
@@ -23,14 +23,14 @@ const items = ref([
         // items: []
     },
     {
-        label: 'Developer',
+        label: 'Presentations',
         icon: 'pi pi-fw pi-user',
         command: () => {
             window.location.assign('https://www.youtube.com/watch?v=XlFkdp0Oelk')
         }
     },
     {
-        label: 'Doc',
+        label: 'Deck',
         icon: 'pi pi-fw pi-file',
         command: () => {
             window.location.assign(
