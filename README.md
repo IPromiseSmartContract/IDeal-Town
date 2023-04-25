@@ -95,8 +95,6 @@ npx hardhat run scripts/deploy.ts --network <network>
 npx hardhat verify --network <network> <address> <constructor>
 ```
 
-## Deployment
-
 ## Deploy contract address
 
 ### 1. Chiado
