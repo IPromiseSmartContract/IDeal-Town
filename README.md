@@ -6,6 +6,11 @@
 
 [Presentation video](https://youtu.be/XlFkdp0Oelk)
 
+## System Design
+
+![image](https://user-images.githubusercontent.com/48343225/234238935-3c1ab1ca-3f4c-42c2-9016-bea43f4814a2.png)
+
+
 ## Description
 
 > Deal it and own it.
