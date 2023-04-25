@@ -44,7 +44,7 @@ git clone https://github.com/IPromiseSmartContract/IDeal-Town
 cd IDeal-Town
 
 yarn
-
+cp ./frontend/.env.example ./frontend/.env
 cp .env.example .env
 
 # NOTICE : YOU SHOULD EDIT .env FILE AFTER COPY
@@ -62,18 +62,6 @@ cd ..
 
 ```shell
 npx hardhat compile
-```
-
-## Test with gas report
-
-```shell
-REPORT_GAS=true npx hardhat test
-```
-
-## Test with coverage report
-
-```shell
-npx hardhat coverage
 ```
 
 ## Setup your frontend environment and run frontend
@@ -95,7 +83,17 @@ npx hardhat run scripts/deploy.ts --network <network>
 npx hardhat verify --network <network> <address> <constructor>
 ```
 
-## Deployment
+## Test with gas report
+
+```shell
+REPORT_GAS=true npx hardhat test
+```
+
+## Test with coverage report
+
+```shell
+npx hardhat coverage
+```
 
 ## Deploy contract address
 
