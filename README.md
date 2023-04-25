@@ -1,15 +1,21 @@
 # IDeal Town
 
-[POAP Gallery](https://poap.gallery/event/124121)
+<table border="0">
+ <tr>
+<td style="width: 40%;">
+<a href="https://poap.gallery/event/124121">POAP Gallery</a>
+<br></br>
+<a href='https://drive.google.com/drive/folders/15a796WD9VL8VZorJGnAbeT5JNJcDSR4W?usp=sharing'>Interface Demo Video Link</a>
+<br></br>
+<a href='https://youtu.be/XlFkdp0Oelk'>Presentation video</a></td>
+    <td><img src="https://i.imgur.com/WlxJgrZ.png"></td>
 
-[Interface Demo Video Link](https://drive.google.com/drive/folders/15a796WD9VL8VZorJGnAbeT5JNJcDSR4W?usp=sharing)
-
-[Presentation video](https://youtu.be/XlFkdp0Oelk)
+ </tr>
+</table>
 
 ## System Design
 
 ![image](https://user-images.githubusercontent.com/48343225/234238935-3c1ab1ca-3f4c-42c2-9016-bea43f4814a2.png)
-
 
 ## Description
 
